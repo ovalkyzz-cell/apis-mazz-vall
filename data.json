@@ -40,6 +40,16 @@
       "expires_at": "2026-09-04T18:24:56.004094",
       "duration": "1d",
       "device_fingerprint": null,
+      "active": true,
+      "expired": false
+    },
+    {
+      "key": "MZval -XKHUCZGC382",
+      "user": "Valky",
+      "created_at": "2026-09-04T14:56:55.592621",
+      "expires_at": "2027-08-30T14:56:55.592621",
+      "duration": "12m",
+      "device_fingerprint": null,
       "active": true
     }
   ],
