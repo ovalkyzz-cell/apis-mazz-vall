@@ -924,7 +924,7 @@ function getHeaders(){ return {'X-API-Key':apiKey,'Content-Type':'application/js
 function noKey(){ alert('Set API Key dulu!'); return true; }
 
 function renderVideos(data,containerId){
-var c=$(containerId);var items=data.data||data.items||data.videos||[];
+var c=$(containerId);var items=data.data||data.results||data.items||data.videos||[];
 if(!items||items.length===0){c.innerHTML='<p style="color:#666;">Tidak ada video ditemukan.</p>';return;}
 var h='<div class="video-grid">';
 for(var i=0;i<Math.min(items.length,20);i++){var it=items[i];
@@ -1038,7 +1038,9 @@ showLoading('tool-result');
 fetch('/api/keyrafa/tiktok?username='+encodeURIComponent(username),{headers:getHeaders()})
 .then(function(r){return r.json();})
 .then(function(d){
-var c=$('tool-result');var u=d.result||d;
+var c=$('tool-result');
+if(d.result&&d.result.error){c.innerHTML='<div class="card visible" style="margin-top:10px;"><h3>Error</h3><p style="color:#FF6B6B;">'+d.result.error+'</p></div>';return;}
+var u=d.result||d;
 var h='<div class="card visible" style="margin-top:10px;">';
 if(u.avatar)h+='<img src="'+u.avatar+'" style="width:80px;height:80px;border-radius:50%;border:3px solid #000;object-fit:cover;">';
 h+='<h3 style="margin:8px 0;">'+(u.nickname||u.username||username)+'</h3>';
@@ -1061,9 +1063,10 @@ fetch('/api/keyrafa/translate?text='+encodeURIComponent(text)+'&to=en&from=auto'
 .then(function(d){
 var c=$('tool-result');var r=d.result||d;
 var h='<div class="card visible" style="margin-top:10px;">';
-if(r.sourceText)h+='<div style="margin-bottom:8px;"><strong>Asli:</strong><br>'+r.sourceText+'</div>';
-if(r.translatedText)h+='<div><strong>Terjemahan:</strong><br>'+r.translatedText+'</div>';
-else if(r.text)h+='<div><strong>Terjemahan:</strong><br>'+r.text+'</div>';
+if(r.text)h+='<div style="margin-bottom:8px;"><strong>Asli:</strong><br>'+r.text+'</div>';
+if(r.translated)h+='<div><strong>Terjemahan:</strong><br>'+r.translated+'</div>';
+else if(r.translatedText)h+='<div><strong>Terjemahan:</strong><br>'+r.translatedText+'</div>';
+else if(r.text)h+='<div><strong>Result:</strong><br>'+r.text+'</div>';
 h+='</div>';c.innerHTML=h;
 })
 .catch(function(e){showError('tool-result',e.message);});
@@ -1078,7 +1081,8 @@ fetch('/api/keyrafa/ssweb?url='+encodeURIComponent(url),{headers:getHeaders()})
 .then(function(r){return r.json();})
 .then(function(d){
 var c=$('tool-result');
-if(d.result&&d.result.url){c.innerHTML='<div class="video-card visible" style="margin-top:10px;"><img src="'+d.result.url+'" alt="Screenshot" style="max-width:100%;border:3px solid #000;border-radius:8px;"></div>';}
+var imgUrl=d.result&&(d.result.image||d.result.screenshotUrl);
+if(imgUrl){c.innerHTML='<div class="video-card visible" style="margin-top:10px;"><img src="'+imgUrl+'" alt="Screenshot" style="max-width:100%;border:3px solid #000;border-radius:8px;"></div>';}
 else{c.innerHTML='<p style="color:#FF6B6B;">Gagal mengambil screenshot</p>';}
 })
 .catch(function(e){showError('tool-result',e.message);});
