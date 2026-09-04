@@ -1153,7 +1153,25 @@ h+='</div>';$('alight-result').innerHTML=h;
 .catch(function(e){$('alight-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
 });
 
-if(apiKey){$('tool-api-key').value=apiKey;$('key-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">&#10003; AKTIF: <strong>'+apiKey+'</strong> — Semua tools siap dipakai!</span>';}
+if(apiKey){
+  $('tool-api-key').value=apiKey;
+  $('key-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">&#10003; AKTIF: <strong>'+apiKey+'</strong> — Semua tools siap dipakai!</span>';
+} else {
+  $('key-status').innerHTML='<span style="color:#FFD60A;font-weight:700;">Membuat API Key otomatis...</span>';
+  fetch('/api/external/keys/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Auto-' + Date.now()})})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.status==='success'&&d.api_key){
+      apiKey=d.api_key;
+      localStorage.setItem('toolApiKey',d.api_key);
+      $('tool-api-key').value=d.api_key;
+      $('key-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">&#10003; AKTIF: <strong>'+d.api_key+'</strong> — Semua tools siap dipakai!</span>';
+    } else {
+      $('key-status').innerHTML='<span style="color:#FF6B6B;">Gagal buat key. Generate manual.</span>';
+    }
+  })
+  .catch(function(e){$('key-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
+}
 });
 </script>
 </body></html>"""
