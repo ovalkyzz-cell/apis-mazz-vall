@@ -42,5 +42,13 @@
       "device_fingerprint": null,
       "active": true
     }
+  ],
+  "external_keys": [
+    {
+      "key": "TOOL-2B0032B2E5E9405B",
+      "name": "PersistTest",
+      "created_at": "2026-09-04T14:25:29.539313",
+      "expired_at": "2026-10-04T14:25:29.539335"
+    }
   ]
 }
