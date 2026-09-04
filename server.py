@@ -921,7 +921,7 @@ function $(id){ return document.getElementById(id); }
 function showLoading(id){ $(id).innerHTML = '<div style="text-align:center;padding:20px;"><strong>Loading...</strong></div>'; }
 function showError(id,e){ $(id).innerHTML = '<p style="color:#FF6B6B;">Error: '+e+'</p>'; }
 function getHeaders(){ return {'X-API-Key':apiKey,'Content-Type':'application/json'}; }
-function noKey(){ alert('Set API Key dulu!'); return true; }
+function noKey(){ if(!apiKey){ alert('Set API Key dulu!'); return true; } return false; }
 
 function renderVideos(data,containerId){
 var c=$(containerId);var items=data.data||data.results||data.items||data.videos||[];
@@ -963,7 +963,7 @@ h+='</div>';c.innerHTML=h;}
 
 if($('btn-set-key')) $('btn-set-key').addEventListener('click', function(){
 var key=$('tool-api-key').value.trim();
-if(key){apiKey=key;localStorage.setItem('toolApiKey',key);$('key-status').innerHTML='<span style="color:#4ECDC4;">API Key set: <strong>'+key.substring(0,8)+'...</strong></span>';}
+if(key){apiKey=key;localStorage.setItem('toolApiKey',key);$('key-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">&#10003; AKTIF: <strong>'+key+'</strong> — Semua tools siap dipakai!</span>';}
 });
 
 if($('btn-gen-key')) $('btn-gen-key').addEventListener('click', function(){
@@ -971,7 +971,7 @@ var btn=this; btn.disabled=true; btn.textContent='Generating...';
 fetch('/api/external/keys/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Tool User'})})
 .then(function(r){return r.json();})
 .then(function(d){
-if(d.status==='success'&&d.api_key){apiKey=d.api_key;localStorage.setItem('toolApiKey',d.api_key);$('tool-api-key').value=d.api_key;$('key-status').innerHTML='<span style="color:#4ECDC4;">Key generated: <strong>'+d.api_key+'</strong></span>';}
+if(d.status==='success'&&d.api_key){apiKey=d.api_key;localStorage.setItem('toolApiKey',d.api_key);$('tool-api-key').value=d.api_key;$('key-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">&#10003; AKTIF: <strong>'+d.api_key+'</strong> — Semua tools siap dipakai!</span>';}
 else{$('key-status').innerHTML='<span style="color:#FF6B6B;">Gagal: '+(d.message||'Unknown')+'</span>';}
 })
 .catch(function(e){$('key-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';})
@@ -1127,7 +1127,7 @@ h+='</div>';$('alight-result').innerHTML=h;
 .catch(function(e){$('alight-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
 });
 
-if(apiKey){$('tool-api-key').value=apiKey;$('key-status').innerHTML='<span style="color:#4ECDC4;">Key loaded: <strong>'+apiKey.substring(0,8)+'...</strong></span>';}
+if(apiKey){$('tool-api-key').value=apiKey;$('key-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">&#10003; AKTIF: <strong>'+apiKey+'</strong> — Semua tools siap dipakai!</span>';}
 });
 </script>
 </body></html>"""
