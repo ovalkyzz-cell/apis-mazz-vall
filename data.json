@@ -1,0 +1,44 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin"
+    }
+  ],
+  "items": [
+    {
+      "id": "2a3c8fa7-9e55-4a89-ae7d-33954f8aaa84",
+      "name": "api news",
+      "price": 10000,
+      "active": true,
+      "created_at": "2026-09-03T17:33:13.978472"
+    },
+    {
+      "id": "595e6742-0807-4e6b-a852-119498bd1051",
+      "name": "Test Item",
+      "price": 25000,
+      "active": true,
+      "created_at": "2026-09-03T17:33:41.510844"
+    },
+    {
+      "id": "d39519c4-e2cd-4bd4-8380-2c1257ece965",
+      "name": "Test Item",
+      "price": 25000,
+      "active": true,
+      "created_at": "2026-09-03T17:41:22.454964"
+    }
+  ],
+  "api_keys": [
+    {
+      "key": "MZval -X6T8YT61LYA",
+      "user": "Yama",
+      "created_at": "2026-09-03T18:24:56.004094",
+      "expires_at": "2026-09-04T18:24:56.004094",
+      "duration": "1d",
+      "device_fingerprint": null,
+      "active": true
+    }
+  ]
+}

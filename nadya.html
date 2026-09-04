@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Untuk Nadya</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#F8F0F5;color:#1a1a1a;min-height:100vh;overflow-x:hidden;}
+
+/* GRAIN TEXTURE */
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;}
+
+/* SUBTLE GRID */
+.grid-bg{position:fixed;top:0;left:0;width:100%;height:100%;background-image:radial-gradient(circle,#E8B4C8 1px,transparent 1px);background-size:40px 40px;opacity:0.3;pointer-events:none;z-index:0;}
+
+/* MAIN */
+.main{max-width:560px;margin:0 auto;padding:24px 16px;position:relative;z-index:10;}
+
+/* HEADER */
+.header{text-align:center;padding:60px 24px;margin-bottom:32px;animation:fadeInUp 0.8s ease both;}
+.header .tag{display:inline-block;background:#1a1a1a;color:#fff;font-size:11px;font-weight:700;letter-spacing:2px;padding:6px 16px;border-radius:50px;text-transform:uppercase;margin-bottom:20px;}
+.header h1{font-family:'Playfair Display',serif;font-size:48px;font-weight:900;line-height:1.1;margin-bottom:12px;background:linear-gradient(135deg,#1a1a1a 0%,#C71585 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header p{font-size:16px;color:#666;font-weight:500;max-width:400px;margin:0 auto;line-height:1.6;}
+
+/* DIVIDER */
+.divider{width:60px;height:4px;background:#C71585;border-radius:2px;margin:0 auto 32px;animation:expandWidth 1s ease 0.5s both;}
+@keyframes expandWidth{from{width:0;}to{width:60px;}}
+
+/* PROGRESS */
+.progress-wrap{margin-bottom:32px;animation:fadeInUp 0.8s ease 0.2s both;}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#999;margin-bottom:8px;}
+.progress{background:#E8E0E5;border-radius:50px;height:6px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#C71585,#FF69B4);border-radius:50px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);width:0%;}
+
+/* QUESTION CARD */
+.q-card{background:#fff;border:3px solid #1a1a1a;border-radius:20px;padding:32px 28px;margin-bottom:20px;box-shadow:6px 6px 0 #1a1a1a;opacity:0;transform:translateY(30px);transition:all 0.5s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden;}
+.q-card.show{opacity:1;transform:translateY(0);}
+.q-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:#C71585;}
+.q-num{font-size:11px;font-weight:700;letter-spacing:2px;color:#C71585;text-transform:uppercase;margin-bottom:16px;}
+.q-card h2{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;line-height:1.3;margin-bottom:10px;color:#1a1a1a;}
+.q-card p{font-size:14px;color:#666;line-height:1.7;margin-bottom:20px;}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+.btn{font-family:'Inter',sans-serif;font-weight:700;font-size:14px;padding:12px 24px;border:2.5px solid #1a1a1a;border-radius:12px;cursor:pointer;transition:all 0.15s ease;position:relative;}
+.btn:hover{box-shadow:4px 4px 0 #1a1a1a;transform:translate(-2px,-2px);}
+.btn:active{box-shadow:1px 1px 0 #1a1a1a;transform:translate(2px,2px);}
+.btn-yes{background:#C71585;color:#fff;border-color:#C71585;}
+.btn-yes:hover{background:#A00F6A;border-color:#A00F6A;}
+.btn-no{background:#fff;color:#1a1a1a;}
+
+/* RESULT */
+.result{background:#fff;border:3px solid #1a1a1a;border-radius:24px;padding:48px 28px;box-shadow:8px 8px 0 #1a1a1a;text-align:center;margin-top:32px;display:none;position:relative;overflow:hidden;}
+.result.show{display:block;animation:popIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both;}
+.result::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#C71585,#FF69B4,#C71585);}
+.result .icon{width:80px;height:80px;background:#C71585;border:3px solid #1a1a1a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px;box-shadow:4px 4px 0 #1a1a1a;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.result h1{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;margin-bottom:16px;color:#1a1a1a;}
+.result p{font-size:15px;color:#555;line-height:1.8;max-width:400px;margin:0 auto;}
+.result .sign{margin-top:24px;font-family:'Playfair Display',serif;font-size:20px;color:#C71585;font-style:italic;}
+
+/* CREDIT */
+.credit{text-align:center;padding:32px 0 16px;font-size:11px;color:#bbb;letter-spacing:1px;}
+.credit span{font-weight:700;color:#999;}
+
+/* ANIMATIONS */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes popIn{from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
+
+/* FLOATING PARTICLES */
+.particle{position:fixed;width:6px;height:6px;background:#E8B4C8;border-radius:50%;pointer-events:none;z-index:0;opacity:0;animation:particleFloat 8s ease-in-out infinite;}
+@keyframes particleFloat{0%{opacity:0;transform:translateY(100vh) scale(0);}20%{opacity:0.6;}80%{opacity:0.6;}100%{opacity:0;transform:translateY(-20vh) scale(1);}}
+
+@media(max-width:600px){
+.header h1{font-size:34px;}
+.q-card h2{font-size:20px;}
+.result h1{font-size:26px;}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- PARTICLES -->
+<div class="particle" style="left:10%;animation-delay:0s;"></div>
+<div class="particle" style="left:25%;animation-delay:1.5s;"></div>
+<div class="particle" style="left:45%;animation-delay:3s;"></div>
+<div class="particle" style="left:65%;animation-delay:2s;"></div>
+<div class="particle" style="left:80%;animation-delay:4s;"></div>
+<div class="particle" style="left:55%;animation-delay:5s;"></div>
+<div class="particle" style="left:35%;animation-delay:6s;"></div>
+<div class="particle" style="left:90%;animation-delay:1s;"></div>
+
+<div class="main">
+
+<!-- HEADER -->
+<div class="header">
+<div class="tag">From MaZz Vall</div>
+<h1>Untuk Nadya</h1>
+<p>Beberapa hal yang ingin aku sampaikan. Jawab dengan jujur ya.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+<div class="progress-label"><span>Progress</span><span id="progressText">0 / 8</span></div>
+<div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<!-- Q1 -->
+<div class="q-card" id="q1">
+<div class="q-num">Pertanyaan 01</div>
+<h2>Menurut kamu, arti kata "sayang" itu apa?</h2>
+<p>Bukan definisi dari kamus. Tapi dari hati kamu. Apa yang kamu rasain saat denger kata itu?</p>
+<div class="btn-row">
+<button class="btn btn-yes" onclick="next(2)">Perasaan yang dalam</button>
+<button class="btn btn-no" onclick="tolak(this)">Belum tau</button>
+</div>
+</div>
+
+<!-- Q2 -->
+<div class="q-card" id="q2">
+<div class="q-num">Pertanyaan 02</div>
+<h2>Kalau ada sesealu yang selalu bikin kamu senyum tanpa alasan, itu siapa?</h2>
+<p>Jawab dari hati. Jangan mikir panjang. Langsung keluar aja.</p>
+<div class="btn-row">
+<button class="btn btn-yes" onclick="next(3)">Kamu tau sendiri</button>
+<button class="btn btn-no" onclick="tolak(this)">Gak ada</button>
+</div>
+</div>
+
+<!-- Q3 -->
+<div class="q-card" id="q3">
+<div class="q-num">Pertanyaan 03</div>
+<h2>Hubungan yang baik itu menurut kamu gimana?</h2>
+<p>Saling percaya, saling support, atau yang lainnya?</p>
+<div class="btn-row">
+<button class="btn btn-yes" onclick="next(4)">Saling mengerti</button>
+<button class="btn btn-no" onclick="tolak(this)">Belum tau</button>
+</div>
+</div>
+
+<!-- Q4 -->
+<div class="q-card" id="q4">
+<div class="q-num">Pertanyaan 04</div>
+<h2>Kamu percaya gak sama yang namanya "jodoh"?</h2>
+<p>Yang namanya udah ditakdirkan ketemu, pasti bakal ketemu.</p>
+<div class="btn-row">
+<button class="btn btn-yes" onclick="next(5)">Percaya banget</button>
+<button class="btn btn-no" onclick="tolak(this)">Gak percaya</button>
+</div>
+</div>
+
+<!-- Q5 -->
+<div class="q-card" id="q5">
+<div class="q-num">Pertanyaan 05</div>
+<h2>Apa yang bikin kamu betah sama seseorang?</h2>
+<p>Sikapnya, cara dia ngomong, atau cara dia ngerawat?</p>
+<div class="btn-row">
+<button class="btn btn-yes" onclick="next(6)">Kejujuran & perhatian</button>
+<button class="btn btn-no" onclick="tolak(this)">Belum tau</button>
+</div>
+</div>
+
+<!-- Q6 -->
+<div class="q-card" id="q6">
+<div class="q-num">Pertanyaan 06</div>
+<h2>Kalau seseorang bilang "aku sayang kamu", kamu percaya gak?</h2>
+<p>Tanpa bukti, cuma kata-kata. Kamu langsung percaya atau perlu waktu?</p>
+<div class="btn-row">
+<button class="btn btn-yes" onclick="next(7)">Perlu bukti dulu</button>
+<button class="btn btn-no" onclick="tolak(this)">Gak percaya</button>
+</div>
+</div>
+
+<!-- Q7 -->
+<div class="q-card" id="q7">
+<div class="q-num">Pertanyaan 07</div>
+<h2>Kamu pernah gak ngerasa kehilangan sesuatu yang berharga banget?</h2>
+<p>Bukan benda. Tapi perasaan. Sesuatu yang gak bisa diganti.</p>
+<div class="btn-row">
+<button class="btn btn-yes" onclick="next(8)">Pernah, dan itu menyakitkan</button>
+<button class="btn btn-no" onclick="tolak(this)">Belum pernah</button>
+</div>
+</div>
+
+<!-- Q8 -->
+<div class="q-card" id="q8">
+<div class="q-num">Pertanyaan Terakhir</div>
+<h2>Terakhir, kamu mau gak punya seseorang yang selalu ada buat kamu?</h2>
+<p>Seseorang yang gak akan pergi. Yang akan tetap di sini, di saat kamu butuh.</p>
+<div class="btn-row">
+<button class="btn btn-yes" onclick="selesai()">Mau. Aku mau itu.</button>
+<button class="btn btn-no" onclick="tolak(this)">Gak perlu</button>
+</div>
+</div>
+
+<!-- RESULT -->
+<div class="result" id="result">
+<div class="icon">&#10084;</div>
+<h1>Nadya, terima kasih.</h1>
+<p>
+Semua pertanyaan tadi cuma alasan aku buat bilang sesuatu.<br><br>
+Aku cuma mau kamu tau, bahwa ada seseorang yang tulus sayang kamu. Yang gak akan pernah lelah nunjukin perhatian. Yang akan tetap di sini, meskipun dunia berubah.<br><br>
+Kamu lebih dari yang kamu kira.
+</p>
+<div class="sign">Dari MaZz Vall, untukmu.</div>
+</div>
+
+<!-- CREDIT -->
+<div class="credit">
+Dibuat oleh <span>MaZz Vall</span>
+</div>
+
+</div>
+
+<script>
+let current=0;
+const total=8;
+
+// SHOW Q1
+setTimeout(()=>document.getElementById('q1').classList.add('show'),400);
+
+function next(num){
+document.querySelectorAll('.q-card').forEach(c=>c.classList.remove('show'));
+current=num-1;
+updateProgress();
+setTimeout(()=>{
+document.getElementById('q'+num).classList.add('show');
+document.getElementById('q'+num).scrollIntoView({behavior:'smooth',block:'center'});
+},300);
+}
+
+function updateProgress(){
+const pct=(current/total)*100;
+document.getElementById('progressFill').style.width=pct+'%';
+document.getElementById('progressText').textContent=current+' / '+total;
+}
+
+function tolak(btn){
+const card=btn.closest('.q-card');
+const rect=card.getBoundingClientRect();
+const maxMove=120;
+
+let moveX=(Math.random()-0.5)*maxMove*2;
+let moveY=(Math.random()-0.5)*80;
+
+moveX=Math.max(-rect.left+20,Math.min(moveX,window.innerWidth-rect.right+20));
+
+btn.style.transition='transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275)';
+btn.style.transform=`translate(${moveX}px,${moveY}px)`;
+
+const noTexts=['Klik yang bener','Gak begitu caranya','Coba lagi','Masih belum','Jangan itu','Satu lagi'];
+btn.textContent=noTexts[Math.floor(Math.random()*noTexts.length)];
+
+setTimeout(()=>{
+btn.style.transition='transform 0.3s ease';
+btn.style.transform='';
+},500);
+}
+
+function selesai(){
+document.querySelectorAll('.q-card').forEach(c=>c.classList.remove('show'));
+document.getElementById('progressFill').style.width='100%';
+document.getElementById('progressText').textContent=total+' / '+total;
+
+setTimeout(()=>{
+const r=document.getElementById('result');
+r.classList.add('show');
+r.scrollIntoView({behavior:'smooth',block:'center'});
+},300);
+}
+</script>
+</body>
+</html>

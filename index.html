@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neobrutalist Website</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #FFD60A;
+            border: 4px solid #000;
+            border-radius: 16px;
+            padding: 16px 24px;
+            box-shadow: 6px 6px 0 #000;
+            margin-bottom: 30px;
+        }
+
+        .navbar .logo {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .navbar .nav-links a {
+            text-decoration: none;
+            color: #000;
+            font-weight: 600;
+            padding: 8px 16px;
+            border: 3px solid #000;
+            border-radius: 10px;
+            background: #fff;
+            transition: all 0.15s;
+        }
+
+        .navbar .nav-links a:hover {
+            box-shadow: 4px 4px 0 #000;
+            transform: translate(-2px, -2px);
+        }
+
+        .navbar .nav-links a:active {
+            box-shadow: 1px 1px 0 #000;
+            transform: translate(2px, 2px);
+        }
+
+        /* HERO */
+        .hero {
+            background: #FF6B6B;
+            border: 4px solid #000;
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 8px 8px 0 #000;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            font-size: 20px;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            font-weight: 400;
+        }
+
+        .hero .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 14px 28px;
+            border: 4px solid #000;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #4ECDC4;
+            color: #000;
+            box-shadow: 5px 5px 0 #000;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 7px 7px 0 #000;
+            transform: translate(-2px, -2px);
+        }
+
+        .btn-primary:active {
+            box-shadow: 2px 2px 0 #000;
+            transform: translate(2px, 2px);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #000;
+            box-shadow: 5px 5px 0 #000;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 7px 7px 0 #000;
+            transform: translate(-2px, -2px);
+        }
+
+        .btn-secondary:active {
+            box-shadow: 2px 2px 0 #000;
+            transform: translate(2px, 2px);
+        }
+
+        /* FEATURES */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .feature-card {
+            background: #fff;
+            border: 4px solid #000;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 6px 6px 0 #000;
+            transition: all 0.15s;
+        }
+
+        .feature-card:hover {
+            box-shadow: 8px 8px 0 #000;
+            transform: translate(-2px, -2px);
+        }
+
+        .feature-card .icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+            background: #C8B6FF;
+            width: 70px;
+            height: 70px;
+            border: 3px solid #000;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-card:nth-child(2) .icon {
+            background: #FFD6A5;
+        }
+
+        .feature-card:nth-child(3) .icon {
+            background: #CAFFBF;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* PRICING */
+        .pricing {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .pricing-card {
+            background: #fff;
+            border: 4px solid #000;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 6px 6px 0 #000;
+            text-align: center;
+        }
+
+        .pricing-card.featured {
+            background: #B8F3FF;
+        }
+
+        .pricing-card .plan-name {
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card .price {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .pricing-card .price span {
+            font-size: 18px;
+            font-weight: 400;
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .pricing-card ul li {
+            padding: 10px 0;
+            border-bottom: 2px dashed #ccc;
+            font-weight: 500;
+        }
+
+        .pricing-card ul li::before {
+            content: "✓ ";
+            font-weight: 700;
+            color: #000;
+        }
+
+        /* CONTACT FORM */
+        .contact {
+            background: #C8B6FF;
+            border: 4px solid #000;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 8px 8px 0 #000;
+            margin-bottom: 30px;
+        }
+
+        .contact h2 {
+            font-size: 36px;
+            margin-bottom: 24px;
+        }
+
+        .contact form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 500px;
+        }
+
+        .contact input,
+        .contact textarea {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            padding: 14px 18px;
+            border: 3px solid #000;
+            border-radius: 10px;
+            background: #fff;
+            outline: none;
+        }
+
+        .contact input:focus,
+        .contact textarea:focus {
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .contact textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: #000;
+            color: #fff;
+            border: 4px solid #000;
+            border-radius: 16px;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer .footer-text {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+        }
+
+        .footer .social-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .footer .social-links a {
+            background: #FFD60A;
+            color: #000;
+            border: 3px solid #fff;
+            border-radius: 10px;
+            padding: 10px 14px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .footer .social-links a:hover {
+            box-shadow: 3px 3px 0 #fff;
+            transform: translate(-2px, -2px);
+        }
+
+        /* MARQUEE */
+        .marquee-wrapper {
+            background: #4ECDC4;
+            border: 4px solid #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            padding: 12px 0;
+            box-shadow: 6px 6px 0 #000;
+        }
+
+        .marquee {
+            display: flex;
+            animation: scroll 15s linear infinite;
+            white-space: nowrap;
+        }
+
+        .marquee span {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 0 40px;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* BADGE */
+        .badge {
+            display: inline-block;
+            background: #FFD60A;
+            border: 3px solid #000;
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .navbar .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .footer {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="logo">NEOBRUT.</div>
+        <div class="nav-links">
+            <a href="#fitur">Fitur</a>
+            <a href="#harga">Harga</a>
+            <a href="#kontak">Kontak</a>
+        </div>
+    </nav>
+
+    <!-- MARQUEE -->
+    <div class="marquee-wrapper">
+        <div class="marquee">
+            <span>★ NEOBRUTALISM ★ DESIGN YANG BERANI ★ TANPA KOMPROMI ★ BORDER TEBAL ★ WARNA MENYALA ★ SHADOW SOLID ★ TYPOGRAFI BOLD ★</span>
+            <span>★ NEOBRUTALISM ★ DESIGN YANG BERANI ★ TANPA KOMPROMI ★ BORDER TEBAL ★ WARNA MENYALA ★ SHADOW SOLID ★ TYPOGRAFI BOLD ★</span>
+        </div>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero">
+        <span class="badge">🔥 MENDATANG 2026</span>
+        <h1>DESAIN YANG BERANI<br>TANPA BATAS</h1>
+        <p>Website dengan gaya neobrutalism yang bold, playful, dan penuh karakter. Border tebal, warna cerah, shadow solid.</p>
+        <div class="cta-buttons">
+            <a href="#fitur" class="btn btn-primary">Mulai Sekarang</a>
+            <a href="#kontak" class="btn btn-secondary">Hubungi Kami</a>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features" id="fitur">
+        <div class="feature-card">
+            <div class="icon">🎨</div>
+            <h3>Desain Bold</h3>
+            <p>Border tebal, warna kontras, dan shadow solid yang menciptakan tampilan unik dan menarik perhatian.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">⚡</div>
+            <h3>Cepat & Ringan</h3>
+            <p>Tanpa framework berat. HTML dan CSS murni yang ringan dan loading super cepat.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">📱</div>
+            <h3>Responsif</h3>
+            <p>Tampilan optimal di semua ukuran layar, dari mobile hingga desktop.</p>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="pricing" id="harga">
+        <div class="pricing-card">
+            <div class="plan-name">GRATIS</div>
+            <div class="price">Rp0<span>/bulan</span></div>
+            <ul>
+                <li>1 Halaman</li>
+                <li>Desain Dasar</li>
+                <li>Responsif</li>
+                <li>SSL Gratis</li>
+            </ul>
+            <a href="#kontak" class="btn btn-secondary" style="width: 100%;">Pilih Paket</a>
+        </div>
+        <div class="pricing-card featured">
+            <div class="plan-name">PRO ⭐</div>
+            <div class="price">Rp99K<span>/bulan</span></div>
+            <ul>
+                <li>10 Halaman</li>
+                <li>Desain Premium</li>
+                <li>Responsif</li>
+                <li>SEO Optimized</li>
+                <li>Custom Domain</li>
+            </ul>
+            <a href="#kontak" class="btn btn-primary" style="width: 100%;">Pilih Paket</a>
+        </div>
+        <div class="pricing-card">
+            <div class="plan-name">ENTERPRISE</div>
+            <div class="price">Rp499K<span>/bulan</span></div>
+            <ul>
+                <li>Unlimited Halaman</li>
+                <li>Desain Kustom</li>
+                <li>Responsif</li>
+                <li>SEO + Analytics</li>
+                <li>Support Prioritas</li>
+            </ul>
+            <a href="#kontak" class="btn btn-secondary" style="width: 100%;">Pilih Paket</a>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="contact" id="kontak">
+        <h2>Hubungi Kami</h2>
+        <form onsubmit="event.preventDefault(); alert('Terima kasih! Pesan Anda telah dikirim.');">
+            <input type="text" placeholder="Nama Anda" required>
+            <input type="email" placeholder="Email Anda" required>
+            <textarea placeholder="Pesan Anda..." required></textarea>
+            <button type="submit" class="btn btn-primary" style="width: fit-content;">Kirim Pesan</button>
+        </form>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-text">© 2026 NEOBRUT.</div>
+        <div class="social-links">
+            <a href="#">Twitter</a>
+            <a href="#">GitHub</a>
+            <a href="#">Discord</a>
+        </div>
+    </footer>
+
+</body>
+</html>
