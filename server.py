@@ -800,84 +800,275 @@ TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <a href="/logout" style="background:#FF6B6B;">Logout</a>
 </div></nav>
 <div class="container">
-<div class="marquee"><marquee behavior="scroll" direction="left" scrollamount="5">&#9889; Welcome to Tools Center - All access requires API Key - Admin Only Access - Alight Motion Premium Real & Work - Dailymotion - Bittv - MovieBox - TikTok - Translator - Screenshot - Info Gempa</marquee></div>
-<div class="page-title fade-in"><h1>Tools Center</h1><p>Admin Only - Semua tools wajib API Key</p></div>
-<div class="card fade-in">
+<div class="marquee"><marquee behavior="scroll" direction="left" scrollamount="5">&#9889; Welcome to Tools Center - Alight Motion Premium Real & Work - Dailymotion - Bittv - MovieBox - TikTok - Translator - Screenshot - Info Gempa</marquee></div>
+<div class="page-title visible"><h1>Tools Center</h1><p>Semua tools wajib API Key</p></div>
+<div class="card visible">
 <h2>API Key</h2>
 <p style="color:#666;font-size:14px;margin-bottom:12px;">Masukkan API Key untuk mengakses tools:</p>
 <div style="display:flex;gap:10px;flex-wrap:wrap;">
 <input type="text" id="tool-api-key" placeholder="Masukkan API Key" style="flex:1;min-width:200px;">
-<button class="btn btn-primary" onclick="setApiKey()">Set API Key</button>
-<button class="btn btn-warning" onclick="generateApiKey()">+ Generate Key</button>
+<button class="btn btn-primary" id="btn-set-key">Set API Key</button>
+<button class="btn btn-warning" id="btn-gen-key">+ Generate Key</button>
 </div>
 <div id="key-status" style="margin-top:10px;color:#666;font-size:13px;"></div>
 </div>
-<div class="card fade-in"><h2>Dailymotion</h2>
+<div class="card visible"><h2>Dailymotion</h2>
 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
 <input type="text" id="dm-search" placeholder="Cari video..." style="flex:1;min-width:150px;">
 <select id="dm-sort"><option value="trending">Trending</option><option value="recent">Terbaru</option><option value="relevance">Relevansi</option></select>
 <select id="dm-limit"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select>
-<button class="btn btn-primary" onclick="searchDailymotion()">Cari</button>
+<button class="btn btn-primary" id="btn-dm-search">Cari</button>
 </div>
 <div id="dm-result" style="margin-top:10px;"></div>
 </div>
-<div class="card fade-in"><h2>Bittv Events</h2>
+<div class="card visible"><h2>Bittv Events</h2>
 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
 <select id="bittv-type"><option value="EV">Events</option><option value="SP">Sports TV</option><option value="ID">Indonesia</option><option value="GB">UK</option><option value="US">US</option></select>
-<button class="btn btn-primary" onclick="getBittv()">Lihat Events</button>
+<button class="btn btn-primary" id="btn-bittv">Lihat Events</button>
 </div>
 <div id="bittv-result" style="margin-top:10px;"></div>
 </div>
-<div class="card fade-in"><h2>MovieBox</h2>
+<div class="card visible"><h2>MovieBox</h2>
 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
 <select id="moviebox-type"><option value="global">Trending Global</option><option value="horror">Horror Indonesia</option></select>
-<button class="btn btn-primary" onclick="getMoviebox()">Lihat Film</button>
+<button class="btn btn-primary" id="btn-moviebox">Lihat Film</button>
 </div>
 <div id="moviebox-result" style="margin-top:10px;"></div>
 </div>
-<div class="card fade-in"><h2>Alight Motion Premium</h2>
+<div class="card visible"><h2>Alight Motion Premium</h2>
 <p style="color:#666;font-size:14px;margin-bottom:12px;">Kirim email & verifikasi OOB link - Real Work!</p>
 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
 <input type="email" id="alight-email" placeholder="Email tujuan" style="flex:1;min-width:200px;">
-<button class="btn btn-primary" onclick="sendAlightLink()">Send Magic Link</button>
+<button class="btn btn-primary" id="btn-alight-send">Send Magic Link</button>
 </div>
 <div id="alight-status" style="color:#666;font-size:13px;margin-bottom:10px;"></div>
 <input type="text" id="alight-link" placeholder="Masukkan OOB link dari email" style="flex:1;min-width:200px;display:none;">
-<button class="btn btn-warning" id="alight-activate-btn" onclick="activateAlight()" style="display:none;">Activate Premium</button>
+<button class="btn btn-warning" id="alight-activate-btn" style="display:none;">Activate Premium</button>
 <div id="alight-result" style="margin-top:10px;"></div>
 </div>
-<div class="card fade-in"><h2>Tools Lainnya</h2>
+<div class="card visible"><h2>Tools Lainnya</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
-<button class="btn btn-secondary" onclick="getGempa()">Info Gempa</button>
-<button class="btn btn-secondary" onclick="getTikTok()">TikTok Profile</button>
-<button class="btn btn-secondary" onclick="showTranslate()">Translator</button>
-<button class="btn btn-secondary" onclick="showScreenshot()">Screenshot</button>
+<button class="btn btn-secondary" id="btn-gempa">Info Gempa</button>
+<button class="btn btn-secondary" id="btn-tiktok">TikTok Profile</button>
+<button class="btn btn-secondary" id="btn-translate">Translator</button>
+<button class="btn btn-secondary" id="btn-screenshot">Screenshot</button>
 </div>
 <div id="tool-result" style="margin-top:10px;"></div>
 </div>
 </div>
 <p class="credit">&copy; Created Mazvall official Hak cipta</p>
-{script}
 <script>
+document.addEventListener('DOMContentLoaded', function(){
 var apiKey = localStorage.getItem('toolApiKey') || '';
-function setApiKey(){var key=document.getElementById('tool-api-key').value.trim();if(key){apiKey=key;localStorage.setItem('toolApiKey',key);document.getElementById('key-status').textContent='API Key set: '+key.substring(0,8)+'...';}}
-function generateApiKey(){fetch('/api/external/keys/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Tool User'})}).then(function(r){return r.json();}).then(function(d){if(d.status==='success'&&d.api_key){document.getElementById('tool-api-key').value=d.api_key;setApiKey();document.getElementById('key-status').innerHTML='<span style="color:#4ECDC4;">Key generated: <strong>'+d.api_key+'</strong></span>';}});}
-function getHeaders(){return{'X-API-Key':apiKey,'Content-Type':'application/json'};}
-function showLoading(containerId){document.getElementById(containerId).innerHTML='<div style="text-align:center;padding:20px;"><strong>Loading...</strong></div>';}
-function renderVideos(data,containerId){var container=document.getElementById(containerId);var items=data.data||data.items||data.videos||[];if(!items||items.length===0){container.innerHTML='<p style="color:#666;">Tidak ada video ditemukan.</p>';return;}var html='<div class="video-grid">';for(var i=0;i<Math.min(items.length,20);i++){var item=items[i];var title=item.title||'No Title';var thumb=item.thumbnail||item.poster||item.image||'';var videoId=item.id||item.video_id||'';var views=item.views||item.view_count||0;if(typeof views==='number')views=views.toLocaleString();html+='<div class="video-card fade-in">';if(thumb)html+='<img src="'+thumb+'" alt="'+title+'" onerror="this.style.display=\'none\'">';html+='<h3 title="'+title+'">'+title.substring(0,40)+'</h3>';html+='<div class="link">ID: '+videoId+'</div>';if(views)html+='<div class="link">'+views+' views</div>';html+='</div>';}html+='</div>';container.innerHTML=html;var observer=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible');});},{threshold:0.1});document.querySelectorAll('.fade-in').forEach(function(el){observer.observe(el);});}
-function renderEvents(data,containerId){var container=document.getElementById(containerId);var info=data.result&&data.result.info?data.result.info:[];if(!info||info.length===0){container.innerHTML='<p style="color:#666;">Tidak ada event ditemukan.</p>';return;}var html='<div class="video-grid">';for(var i=0;i<Math.min(info.length,20);i++){var ev=info[i];html+='<div class="video-card fade-in">';if(ev.image)html+='<img src="'+ev.image+'" alt="'+ev.name+'" onerror="this.style.display=\'none\'">';html+='<h3 title="'+ev.name+'">'+ev.name.substring(0,40)+'</h3>';if(ev.tagline)html+='<div class="link">'+ev.tagline+'</div>';if(ev.hls)html+='<div class="link" style="font-size:10px;word-break:break-all;">'+ev.hls.substring(0,40)+'...</div>';html+='</div>';}html+='</div>';container.innerHTML=html;}
-function renderMovies(data,containerId){var container=document.getElementById(containerId);var items=data.result&&data.result.items?data.result.items:[];if(!items||items.length===0){container.innerHTML='<p style="color:#666;">Tidak ada film ditemukan.</p>';return;}var html='<div class="video-grid">';for(var i=0;i<Math.min(items.length,20);i++){var m=items[i];html+='<div class="video-card fade-in">';if(m.poster)html+='<img src="'+m.poster+'" alt="'+m.title+'" onerror="this.style.display=\'none\'">';html+='<h3 title="'+m.title+'">'+m.title.substring(0,40)+'</h3>';html+='<div class="link">'+(m.genres?m.genres.join(', ').substring(0,30):'')+'</div>';if(m.year)html+='<div class="link">'+m.year+'</div>';if(m.imdbRating)html+='<div class="link">'+m.imdbRating+'</div>';html+='</div>';}html+='</div>';container.innerHTML=html;}
-function searchDailymotion(){if(!apiKey){alert('Set API Key dulu!');return;}showLoading('dm-result');var search=document.getElementById('dm-search').value;var sort=document.getElementById('dm-sort').value;var limit=document.getElementById('dm-limit').value;var url='/api/dailymotion?limit='+limit+'&sort='+sort;if(search)url+='&search='+encodeURIComponent(search);fetch(url,{headers:getHeaders()}).then(function(r){return r.json();}).then(function(d){renderVideos(d,'dm-result');}).catch(function(e){document.getElementById('dm-result').innerHTML='<p style="color:#FF6B6B;">Error: '+e.message+'</p>';});}
-function getBittv(){if(!apiKey){alert('Set API Key dulu!');return;}showLoading('bittv-result');var type=document.getElementById('bittv-type').value;fetch('/api/keyrafa/bittv?type='+type,{headers:getHeaders()}).then(function(r){return r.json();}).then(function(d){renderEvents(d,'bittv-result');}).catch(function(e){document.getElementById('bittv-result').innerHTML='<p style="color:#FF6B6B;">Error: '+e.message+'</p>';});}
-function getMoviebox(){if(!apiKey){alert('Set API Key dulu!');return;}showLoading('moviebox-result');var type=document.getElementById('moviebox-type').value;var endpoint=type==='horror'?'/api/keyrafa/moviebox-horror':'/api/keyrafa/moviebox-global';fetch(endpoint+'?page=1&perPage=10',{headers:getHeaders()}).then(function(r){return r.json();}).then(function(d){renderMovies(d,'moviebox-result');}).catch(function(e){document.getElementById('moviebox-result').innerHTML='<p style="color:#FF6B6B;">Error: '+e.message+'</p>';});}
-function getGempa(){if(!apiKey){alert('Set API Key dulu!');return;}showLoading('tool-result');fetch('/api/keyrafa/gempa?type=auto',{headers:getHeaders()}).then(function(r){return r.json();}).then(function(d){var container=document.getElementById('tool-result');var gempa=d.result&&d.result.gempa?d.result.gempa:[];if(!gempa||gempa.length===0){container.innerHTML='<p style="color:#666;">Tidak ada gempa terkini.</p>';return;}var html='<div class="video-grid">';for(var i=0;i<Math.min(gempa.length,10);i++){var g=gempa[i];html+='<div class="video-card fade-in">';html+='<h3>'+(g.wilayah||'Unknown')+'</h3>';if(g.magnitude)html+='<div class="link">Magnitude: '+g.magnitude+'</div>';if(g.kedalaman)html+='<div class="link">Kedalaman: '+g.kedalaman+' km</div>';if(g.waktu)html+='<div class="link">'+g.waktu+'</div>';html+='</div>';}html+='</div>';container.innerHTML=html;}).catch(function(e){document.getElementById('tool-result').innerHTML='<p style="color:#FF6B6B;">Error: '+e.message+'</p>';});}
-function getTikTok(){if(!apiKey){alert('Set API Key dulu!');return;}var username=prompt('Masukkan username TikTok:');if(!username)return;showLoading('tool-result');fetch('/api/keyrafa/tiktok?username='+encodeURIComponent(username),{headers:getHeaders()}).then(function(r){return r.json();}).then(function(d){var container=document.getElementById('tool-result');var u=d.result||d;var html='<div class="card" style="margin-top:10px;">';if(u.avatar)html+='<img src="'+u.avatar+'" style="width:80px;height:80px;border-radius:50%;border:3px solid #000;object-fit:cover;">';html+='<h3 style="margin:8px 0;">'+(u.nickname||u.username||username)+'</h3>';if(u.signature)html+='<p style="color:#666;font-size:13px;">'+u.signature+'</p>';if(u.followerCount!==undefined)html+='<div style="margin-top:8px;"><strong>Followers:</strong> '+u.followerCount.toLocaleString()+'</div>';if(u.heartCount!==undefined)html+='<div><strong>Likes:</strong> '+u.heartCount.toLocaleString()+'</div>';if(u.videoCount!==undefined)html+='<div><strong>Videos:</strong> '+u.videoCount.toLocaleString()+'</div>';html+='</div>';container.innerHTML=html;}).catch(function(e){document.getElementById('tool-result').innerHTML='<p style="color:#FF6B6B;">Error: '+e.message+'</p>';});}
-function showTranslate(){if(!apiKey){alert('Set API Key dulu!');return;}var text=prompt('Masukkan teks yang mau diterjemahkan:');if(!text)return;showLoading('tool-result');fetch('/api/keyrafa/translate?text='+encodeURIComponent(text)+'&to=en&from=auto',{headers:getHeaders()}).then(function(r){return r.json();}).then(function(d){var container=document.getElementById('tool-result');var r=d.result||d;var html='<div class="card" style="margin-top:10px;">';if(r.sourceText)html+='<div style="margin-bottom:8px;"><strong>Asli:</strong><br>'+r.sourceText+'</div>';if(r.translatedText)html+='<div><strong>Terjemahan:</strong><br>'+r.translatedText+'</div>';else if(r.text)html+='<div><strong>Terjemahan:</strong><br>'+r.text+'</div>';html+='</div>';container.innerHTML=html;}).catch(function(e){document.getElementById('tool-result').innerHTML='<p style="color:#FF6B6B;">Error: '+e.message+'</p>';});}
-function showScreenshot(){if(!apiKey){alert('Set API Key dulu!');return;}var url=prompt('Masukkan URL website:');if(!url)return;showLoading('tool-result');fetch('/api/keyrafa/ssweb?url='+encodeURIComponent(url),{headers:getHeaders()}).then(function(r){return r.json();}).then(function(d){var container=document.getElementById('tool-result');if(d.result&&d.result.url){container.innerHTML='<div class="video-card" style="margin-top:10px;"><img src="'+d.result.url+'" alt="Screenshot" style="max-width:100%;border:3px solid #000;border-radius:8px;"></div>';}else{container.innerHTML='<p style="color:#FF6B6B;">Gagal mengambil screenshot</p>';}}).catch(function(e){document.getElementById('tool-result').innerHTML='<p style="color:#FF6B6B;">Error: '+e.message+'</p>';});}
-var alightEmail='',alightLink='';
-function sendAlightLink(){if(!apiKey){alert('Set API Key dulu!');return;}alightEmail=document.getElementById('alight-email').value.trim();if(!alightEmail||alightEmail.indexOf('@')===-1){alert('Masukkan email yang valid!');return;}document.getElementById('alight-status').textContent='Mengirim link ke '+alightEmail+'...';fetch('/api/alight/send',{method:'POST',headers:getHeaders(),body:JSON.stringify({email:alightEmail})}).then(function(r){return r.json();}).then(function(d){if(d.status){document.getElementById('alight-status').innerHTML='<span style="color:#4ECDC4;">Link sent to <strong>'+alightEmail+'</strong>! Cek inbox/spam.</span>';document.getElementById('alight-link').style.display='inline-block';document.getElementById('alight-activate-btn').style.display='inline-block';document.getElementById('alight-result').innerHTML='<p style="color:#4ECDC4;">'+d.message+'</p>';}else{document.getElementById('alight-status').innerHTML='<span style="color:#FF6B6B;">Gagal: '+(d.error||d.message||'Unknown error')+'</span>';}}).catch(function(e){document.getElementById('alight-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});}
-function activateAlight(){if(!apiKey){alert('Set API Key dulu!');return;}alightLink=document.getElementById('alight-link').value.trim();if(!alightLink||alightLink.indexOf('http')===-1){alert('Masukkan OOB link yang valid!');return;}document.getElementById('alight-status').textContent='Mengaktivasi premium...';fetch('/api/alight/activate',{method:'POST',headers:getHeaders(),body:JSON.stringify({email:alightEmail,link:alightLink})}).then(function(r){return r.json();}).then(function(d){if(d.status){document.getElementById('alight-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">Premium activated!</span>';var html='<div style="background:#CAFFBF;padding:16px;border:3px solid #000;border-radius:10px;">';html+='<h3 style="color:#000;">Premium Activated!</h3>';html+='<p>Email: <strong>'+alightEmail+'</strong></p>';if(d.premium){html+='<p>Status: '+(d.premium.active?'Active':'Inactive')+'</p>';if(d.premium.expiry)html+='<p>Expiry: '+new Date(d.premium.expiry).toLocaleString()+'</p>';html+='<p>Auto Renew: '+(d.premium.auto_renew?'Yes':'No')+'</p>';}html+='</div>';document.getElementById('alight-result').innerHTML=html;}else{document.getElementById('alight-status').innerHTML='<span style="color:#FF6B6B;">Gagal aktivasi: '+(d.error||d.message||'Unknown error')+'</span>';}}).catch(function(e){document.getElementById('alight-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});}
-if(apiKey){document.getElementById('tool-api-key').value=apiKey;document.getElementById('key-status').textContent='API Key loaded: '+apiKey.substring(0,8)+'...';}
+
+function $(id){ return document.getElementById(id); }
+function showLoading(id){ $(id).innerHTML = '<div style="text-align:center;padding:20px;"><strong>Loading...</strong></div>'; }
+function showError(id,e){ $(id).innerHTML = '<p style="color:#FF6B6B;">Error: '+e+'</p>'; }
+function getHeaders(){ return {'X-API-Key':apiKey,'Content-Type':'application/json'}; }
+function noKey(){ alert('Set API Key dulu!'); return true; }
+
+function renderVideos(data,containerId){
+var c=$(containerId);var items=data.data||data.items||data.videos||[];
+if(!items||items.length===0){c.innerHTML='<p style="color:#666;">Tidak ada video ditemukan.</p>';return;}
+var h='<div class="video-grid">';
+for(var i=0;i<Math.min(items.length,20);i++){var it=items[i];
+h+='<div class="video-card visible">';
+var t=it.thumbnail||it.poster||it.image||'';
+if(t)h+='<img src="'+t+'" alt="" onerror="this.remove()">';
+h+='<h3>'+(it.title||'No Title').substring(0,40)+'</h3>';
+h+='<div class="link">ID: '+(it.id||'')+'</div>';
+h+='</div>';}
+h+='</div>';c.innerHTML=h;}
+
+function renderEvents(data,containerId){
+var c=$(containerId);var info=data.result&&data.result.info?data.result.info:[];
+if(!info||info.length===0){c.innerHTML='<p style="color:#666;">Tidak ada event ditemukan.</p>';return;}
+var h='<div class="video-grid">';
+for(var i=0;i<Math.min(info.length,20);i++){var ev=info[i];
+h+='<div class="video-card visible">';
+if(ev.image)h+='<img src="'+ev.image+'" alt="" onerror="this.remove()">';
+h+='<h3>'+(ev.name||'').substring(0,40)+'</h3>';
+if(ev.tagline)h+='<div class="link">'+ev.tagline+'</div>';
+h+='</div>';}
+h+='</div>';c.innerHTML=h;}
+
+function renderMovies(data,containerId){
+var c=$(containerId);var items=data.result&&data.result.items?data.result.items:[];
+if(!items||items.length===0){c.innerHTML='<p style="color:#666;">Tidak ada film ditemukan.</p>';return;}
+var h='<div class="video-grid">';
+for(var i=0;i<Math.min(items.length,20);i++){var m=items[i];
+h+='<div class="video-card visible">';
+if(m.poster)h+='<img src="'+m.poster+'" alt="" onerror="this.remove()">';
+h+='<h3>'+(m.title||'').substring(0,40)+'</h3>';
+if(m.year)h+='<div class="link">'+m.year+'</div>';
+if(m.imdbRating)h+='<div class="link">'+m.imdbRating+'</div>';
+h+='</div>';}
+h+='</div>';c.innerHTML=h;}
+
+if($('btn-set-key')) $('btn-set-key').addEventListener('click', function(){
+var key=$('tool-api-key').value.trim();
+if(key){apiKey=key;localStorage.setItem('toolApiKey',key);$('key-status').innerHTML='<span style="color:#4ECDC4;">API Key set: <strong>'+key.substring(0,8)+'...</strong></span>';}
+});
+
+if($('btn-gen-key')) $('btn-gen-key').addEventListener('click', function(){
+var btn=this; btn.disabled=true; btn.textContent='Generating...';
+fetch('/api/external/keys/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Tool User'})})
+.then(function(r){return r.json();})
+.then(function(d){
+if(d.status==='success'&&d.api_key){apiKey=d.api_key;localStorage.setItem('toolApiKey',d.api_key);$('tool-api-key').value=d.api_key;$('key-status').innerHTML='<span style="color:#4ECDC4;">Key generated: <strong>'+d.api_key+'</strong></span>';}
+else{$('key-status').innerHTML='<span style="color:#FF6B6B;">Gagal: '+(d.message||'Unknown')+'</span>';}
+})
+.catch(function(e){$('key-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';})
+.then(function(){btn.disabled=false;btn.textContent='+ Generate Key';});
+});
+
+if($('btn-dm-search')) $('btn-dm-search').addEventListener('click', function(){
+if(noKey())return;
+showLoading('dm-result');
+var s=$('dm-search').value;var sort=$('dm-sort').value;var lim=$('dm-limit').value;
+var url='/api/dailymotion?limit='+lim+'&sort='+sort;
+if(s)url+='&search='+encodeURIComponent(s);
+fetch(url,{headers:getHeaders()})
+.then(function(r){return r.json();})
+.then(function(d){renderVideos(d,'dm-result');})
+.catch(function(e){showError('dm-result',e.message);});
+});
+
+if($('btn-bittv')) $('btn-bittv').addEventListener('click', function(){
+if(noKey())return;
+showLoading('bittv-result');
+fetch('/api/keyrafa/bittv?type='+$('bittv-type').value,{headers:getHeaders()})
+.then(function(r){return r.json();})
+.then(function(d){renderEvents(d,'bittv-result');})
+.catch(function(e){showError('bittv-result',e.message);});
+});
+
+if($('btn-moviebox')) $('btn-moviebox').addEventListener('click', function(){
+if(noKey())return;
+showLoading('moviebox-result');
+var type=$('moviebox-type').value;
+var ep=type==='horror'?'/api/keyrafa/moviebox-horror':'/api/keyrafa/moviebox-global';
+fetch(ep+'?page=1&perPage=10',{headers:getHeaders()})
+.then(function(r){return r.json();})
+.then(function(d){renderMovies(d,'moviebox-result');})
+.catch(function(e){showError('moviebox-result',e.message);});
+});
+
+if($('btn-gempa')) $('btn-gempa').addEventListener('click', function(){
+if(noKey())return;
+showLoading('tool-result');
+fetch('/api/keyrafa/gempa?type=auto',{headers:getHeaders()})
+.then(function(r){return r.json();})
+.then(function(d){
+var c=$('tool-result');var gempa=d.result&&d.result.gempa?d.result.gempa:[];
+if(!gempa||gempa.length===0){c.innerHTML='<p style="color:#666;">Tidak ada gempa terkini.</p>';return;}
+var h='<div class="video-grid">';
+for(var i=0;i<Math.min(gempa.length,10);i++){var g=gempa[i];
+h+='<div class="video-card visible"><h3>'+(g.wilayah||'Unknown')+'</h3>';
+if(g.magnitude)h+='<div class="link">Magnitude: '+g.magnitude+'</div>';
+if(g.kedalaman)h+='<div class="link">Kedalaman: '+g.kedalaman+' km</div>';
+if(g.waktu)h+='<div class="link">'+g.waktu+'</div>';
+h+='</div>';}
+h+='</div>';c.innerHTML=h;
+})
+.catch(function(e){showError('tool-result',e.message);});
+});
+
+if($('btn-tiktok')) $('btn-tiktok').addEventListener('click', function(){
+if(noKey())return;
+var username=prompt('Masukkan username TikTok:');
+if(!username)return;
+showLoading('tool-result');
+fetch('/api/keyrafa/tiktok?username='+encodeURIComponent(username),{headers:getHeaders()})
+.then(function(r){return r.json();})
+.then(function(d){
+var c=$('tool-result');var u=d.result||d;
+var h='<div class="card visible" style="margin-top:10px;">';
+if(u.avatar)h+='<img src="'+u.avatar+'" style="width:80px;height:80px;border-radius:50%;border:3px solid #000;object-fit:cover;">';
+h+='<h3 style="margin:8px 0;">'+(u.nickname||u.username||username)+'</h3>';
+if(u.signature)h+='<p style="color:#666;font-size:13px;">'+u.signature+'</p>';
+if(u.followerCount!==undefined)h+='<div><strong>Followers:</strong> '+u.followerCount.toLocaleString()+'</div>';
+if(u.heartCount!==undefined)h+='<div><strong>Likes:</strong> '+u.heartCount.toLocaleString()+'</div>';
+if(u.videoCount!==undefined)h+='<div><strong>Videos:</strong> '+u.videoCount.toLocaleString()+'</div>';
+h+='</div>';c.innerHTML=h;
+})
+.catch(function(e){showError('tool-result',e.message);});
+});
+
+if($('btn-translate')) $('btn-translate').addEventListener('click', function(){
+if(noKey())return;
+var text=prompt('Masukkan teks yang mau diterjemahkan:');
+if(!text)return;
+showLoading('tool-result');
+fetch('/api/keyrafa/translate?text='+encodeURIComponent(text)+'&to=en&from=auto',{headers:getHeaders()})
+.then(function(r){return r.json();})
+.then(function(d){
+var c=$('tool-result');var r=d.result||d;
+var h='<div class="card visible" style="margin-top:10px;">';
+if(r.sourceText)h+='<div style="margin-bottom:8px;"><strong>Asli:</strong><br>'+r.sourceText+'</div>';
+if(r.translatedText)h+='<div><strong>Terjemahan:</strong><br>'+r.translatedText+'</div>';
+else if(r.text)h+='<div><strong>Terjemahan:</strong><br>'+r.text+'</div>';
+h+='</div>';c.innerHTML=h;
+})
+.catch(function(e){showError('tool-result',e.message);});
+});
+
+if($('btn-screenshot')) $('btn-screenshot').addEventListener('click', function(){
+if(noKey())return;
+var url=prompt('Masukkan URL website:');
+if(!url)return;
+showLoading('tool-result');
+fetch('/api/keyrafa/ssweb?url='+encodeURIComponent(url),{headers:getHeaders()})
+.then(function(r){return r.json();})
+.then(function(d){
+var c=$('tool-result');
+if(d.result&&d.result.url){c.innerHTML='<div class="video-card visible" style="margin-top:10px;"><img src="'+d.result.url+'" alt="Screenshot" style="max-width:100%;border:3px solid #000;border-radius:8px;"></div>';}
+else{c.innerHTML='<p style="color:#FF6B6B;">Gagal mengambil screenshot</p>';}
+})
+.catch(function(e){showError('tool-result',e.message);});
+});
+
+if($('btn-alight-send')) $('btn-alight-send').addEventListener('click', function(){
+if(noKey())return;
+var email=$('alight-email').value.trim();
+if(!email||email.indexOf('@')===-1){alert('Masukkan email yang valid!');return;}
+$('alight-status').textContent='Mengirim link ke '+email+'...';
+fetch('/api/alight/send',{method:'POST',headers:getHeaders(),body:JSON.stringify({email:email})})
+.then(function(r){return r.json();})
+.then(function(d){
+if(d.status){
+$('alight-status').innerHTML='<span style="color:#4ECDC4;">Link sent! Cek inbox/spam.</span>';
+$('alight-link').style.display='block';
+$('alight-activate-btn').style.display='block';
+$('alight-result').innerHTML='<p style="color:#4ECDC4;">'+d.message+'</p>';
+}else{$('alight-status').innerHTML='<span style="color:#FF6B6B;">Gagal: '+(d.error||d.message||'Error')+'</span>';}
+})
+.catch(function(e){$('alight-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
+});
+
+if($('alight-activate-btn')) $('alight-activate-btn').addEventListener('click', function(){
+if(noKey())return;
+var email=$('alight-email').value.trim();
+var link=$('alight-link').value.trim();
+if(!link||link.indexOf('http')===-1){alert('Masukkan OOB link yang valid!');return;}
+$('alight-status').textContent='Mengaktivasi premium...';
+fetch('/api/alight/activate',{method:'POST',headers:getHeaders(),body:JSON.stringify({email:email,link:link})})
+.then(function(r){return r.json();})
+.then(function(d){
+if(d.status){
+$('alight-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">Premium activated!</span>';
+var h='<div style="background:#CAFFBF;padding:16px;border:3px solid #000;border-radius:10px;">';
+h+='<h3>Premium Activated!</h3><p>Email: <strong>'+email+'</strong></p>';
+if(d.premium){h+='<p>Active: '+(d.premium.active?'Yes':'No')+'</p>';
+if(d.premium.expiry)h+='<p>Expiry: '+new Date(d.premium.expiry).toLocaleString()+'</p>';}
+h+='</div>';$('alight-result').innerHTML=h;
+}else{$('alight-status').innerHTML='<span style="color:#FF6B6B;">Gagal: '+(d.error||'Error')+'</span>';}
+})
+.catch(function(e){$('alight-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
+});
+
+if(apiKey){$('tool-api-key').value=apiKey;$('key-status').innerHTML='<span style="color:#4ECDC4;">Key loaded: <strong>'+apiKey.substring(0,8)+'...</strong></span>';}
+});
 </script>
 </body></html>"""
 
@@ -970,7 +1161,6 @@ def users_page():
     )
 
 @app.route('/tools')
-@admin_required
 def tools_page():
     return render_template_string(
         TOOLS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS)
