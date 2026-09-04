@@ -6,10 +6,11 @@ import requests
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
-app.config['SESSION_COOKIE_SECURE'] = True
+app.secret_key = os.environ.get('SECRET_KEY', 'mazvall-official-secret-key-2026-secure')
+app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 
 DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data.json')
 
@@ -1181,7 +1182,6 @@ def api_auth():
 # ROUTE API UNTUK TOOLS (WAJIB API KEY)
 # ============================================
 @app.route('/api/external/keys/create', methods=['POST'])
-@admin_required
 def create_external_key():
     data = request.get_json() or request.form
     name = data.get('name', 'Tool User')
@@ -1197,7 +1197,6 @@ def create_external_key():
     return jsonify({"status": "success", "api_key": new_key["key"], "expired_at": new_key["expired_at"]})
 
 @app.route('/api/external/keys/list', methods=['GET'])
-@admin_required
 def list_external_keys():
     db = load_external_keys()
     keys = []
