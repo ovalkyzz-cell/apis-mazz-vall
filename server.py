@@ -270,34 +270,44 @@ alight = AlightPremium()
 # ============================================
 DEFAULT_ADMIN_PASSWORD = "mazvalky098889"
 
+def ensure_admin(data):
+    has_admin = any(u.get('username') == 'mazvall' for u in data.get('users', []))
+    if not has_admin:
+        data.setdefault('users', []).insert(0, {
+            "id": "1",
+            "username": "mazvall",
+            "password_hash": generate_password_hash(DEFAULT_ADMIN_PASSWORD),
+            "role": "admin",
+            "device_id": None,
+            "created_at": datetime.now().isoformat()
+        })
+    for u in data.get('users', []):
+        if u.get('username') == 'mazvall':
+            if not u.get('password_hash'):
+                if u.get('password'):
+                    u['password_hash'] = generate_password_hash(u['password'])
+                    del u['password']
+                else:
+                    u['password_hash'] = generate_password_hash(DEFAULT_ADMIN_PASSWORD)
+            if u.get('password') and u.get('password_hash'):
+                del u['password']
+    return data
+
 def load_db():
     if os.path.exists(DB_FILE):
         try:
             with open(DB_FILE, 'r') as f:
                 data = json.load(f)
-            if data.get('users'):
-                for u in data['users']:
-                    if u.get('username') == 'mazvall' and not u.get('password_hash'):
-                        u['password_hash'] = generate_password_hash(u['password'])
-                        del u['password']
+            data = ensure_admin(data)
             return data
         except:
             pass
-    return {
-        "users": [
-            {
-                "id": "1",
-                "username": "mazvall",
-                "password_hash": generate_password_hash(DEFAULT_ADMIN_PASSWORD),
-                "role": "admin",
-                "device_id": None,
-                "created_at": datetime.now().isoformat()
-            }
-        ],
+    return ensure_admin({
+        "users": [],
         "items": [],
         "api_keys": [],
         "user_accounts": []
-    }
+    })
 
 def save_db(data):
     with open(DB_FILE, 'w') as f:

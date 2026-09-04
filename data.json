@@ -2,9 +2,11 @@
   "users": [
     {
       "id": "1",
-      "username": "admin",
-      "password": "admin123",
-      "role": "admin"
+      "username": "mazvall",
+      "password_hash": "scrypt:32768:8:1$FGTT2jGPZyp4GGsl$81736136c17e11d9326361e154080c2e364f77eaad886218d99def78794a977846f852d5ea97123e45324c51c1f0c261a52503335cf58084beabd60fce5651be",
+      "role": "admin",
+      "device_id": null,
+      "created_at": "2026-09-04T00:00:00"
     }
   ],
   "items": [
