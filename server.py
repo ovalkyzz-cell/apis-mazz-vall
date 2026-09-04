@@ -933,6 +933,10 @@ TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <div class="card visible"><h2>Alight Motion Premium</h2>
 <p style="color:#666;font-size:14px;margin-bottom:12px;">Kirim email & verifikasi OOB link - Real Work!</p>
 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+<select id="alight-version" style="padding:10px;border:2px solid #000;border-radius:8px;font-weight:600;">
+<option value="v3">V3 Rafael</option>
+<option value="v4">V4 QSR</option>
+</select>
 <input type="email" id="alight-email" placeholder="Email tujuan" style="flex:1;min-width:200px;">
 <button class="btn btn-primary" id="btn-alight-send">Send Magic Link</button>
 </div>
@@ -1140,17 +1144,18 @@ else{c.innerHTML='<p style="color:#FF6B6B;">Gagal mengambil screenshot</p>';}
 if($('btn-alight-send')) $('btn-alight-send').addEventListener('click', function(){
 if(noKey())return;
 var email=$('alight-email').value.trim();
+var version=$('alight-version').value;
 if(!email||email.indexOf('@')===-1){alert('Masukkan email yang valid!');return;}
-$('alight-status').textContent='Mengirim link ke '+email+'...';
-fetch('/api/alight/send',{method:'POST',headers:getHeaders(),body:JSON.stringify({email:email})})
+$('alight-status').textContent='Mengirim link ke '+email+' ('+version+')...';
+fetch('/api/alight/send',{method:'POST',headers:getHeaders(),body:JSON.stringify({email:email,version:version})})
 .then(function(r){return r.json();})
 .then(function(d){
-if(d.status){
+if(d.ok||d.status){
 $('alight-status').innerHTML='<span style="color:#4ECDC4;">Link sent! Cek inbox/spam.</span>';
 $('alight-link').style.display='block';
 $('alight-activate-btn').style.display='block';
 $('alight-result').innerHTML='<p style="color:#4ECDC4;">'+d.message+'</p>';
-}else{$('alight-status').innerHTML='<span style="color:#FF6B6B;">Gagal: '+(d.error||d.message||'Error')+'</span>';}
+}else{$('alight-status').innerHTML='<span style="color:#FF6B6B;">Gagal: '+(d.message||d.error||'Error')+'</span>';}
 })
 .catch(function(e){$('alight-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
 });
@@ -1159,19 +1164,19 @@ if($('alight-activate-btn')) $('alight-activate-btn').addEventListener('click', 
 if(noKey())return;
 var email=$('alight-email').value.trim();
 var link=$('alight-link').value.trim();
+var version=$('alight-version').value;
 if(!link||link.indexOf('http')===-1){alert('Masukkan OOB link yang valid!');return;}
 $('alight-status').textContent='Mengaktivasi premium...';
-fetch('/api/alight/activate',{method:'POST',headers:getHeaders(),body:JSON.stringify({email:email,link:link})})
+fetch('/api/alight/activate',{method:'POST',headers:getHeaders(),body:JSON.stringify({email:email,link:link,version:version})})
 .then(function(r){return r.json();})
 .then(function(d){
-if(d.status){
+if(d.ok||d.status){
 $('alight-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">Premium activated!</span>';
 var h='<div style="background:#CAFFBF;padding:16px;border:3px solid #000;border-radius:10px;">';
-h+='<h3>Premium Activated!</h3><p>Email: <strong>'+email+'</strong></p>';
-if(d.premium){h+='<p>Active: '+(d.premium.active?'Yes':'No')+'</p>';
-if(d.premium.expiry)h+='<p>Expiry: '+new Date(d.premium.expiry).toLocaleString()+'</p>';}
+h+='<h3>Premium Activated!</h3><p>Email: <strong>'+email+'</strong></p><p>Version: '+version.toUpperCase()+'</p>';
+if(d.data){h+='<pre style="white-space:pre-wrap;">'+JSON.stringify(d.data,null,2)+'</pre>';}
 h+='</div>';$('alight-result').innerHTML=h;
-}else{$('alight-status').innerHTML='<span style="color:#FF6B6B;">Gagal: '+(d.error||'Error')+'</span>';}
+}else{$('alight-status').innerHTML='<span style="color:#FF6B6B;">Gagal: '+(d.message||d.error||'Error')+'</span>';}
 })
 .catch(function(e){$('alight-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
 });
@@ -1632,7 +1637,14 @@ def api_alight_send():
     data = request.get_json()
     if not data or not data.get('email'):
         return jsonify({"status": "error", "message": "Email required"}), 400
-    return jsonify(alight.send_magic_link(data['email']))
+    version = data.get('version', 'v3')
+    try:
+        from alightpro_wrapper import v3_send, v4_send
+        if version == 'v4':
+            return jsonify(v4_send(data['email']))
+        return jsonify(v3_send(data['email']))
+    except Exception as e:
+        return jsonify({"ok": False, "message": str(e)})
 
 @app.route('/api/alight/activate', methods=['POST'])
 @require_tool_key
@@ -1640,7 +1652,14 @@ def api_alight_activate():
     data = request.get_json()
     if not data or not data.get('email') or not data.get('link'):
         return jsonify({"status": "error", "message": "Email and link required"}), 400
-    return jsonify(alight.activate_premium(data['email'], data['link']))
+    version = data.get('version', 'v3')
+    try:
+        from alightpro_wrapper import v3_verify, v4_verify
+        if version == 'v4':
+            return jsonify(v4_verify(data['email'], data['link']))
+        return jsonify(v3_verify(data['email'], data['link']))
+    except Exception as e:
+        return jsonify({"ok": False, "message": str(e)})
 
 # ============================================
 # MAIN
