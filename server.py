@@ -210,127 +210,49 @@ class KeyrafaAPI:
         return self._request("/info/gempa", {"type": type_param})
 
 # ============================================
-# CLASS: ALIGHT PREMIUM GENERATOR (REAL)
+# CLASS: ALIGHT MOTION PREMIUM (dapjimotionpro)
 # ============================================
-class AlightPremium:
+class AlightDapji:
     def __init__(self):
-        self.base_url = CONFIG["ALIGHT_BASE"]
-        self.secret = CONFIG["ALIGHT_SECRET"]
-        self.timeout = CONFIG["TIMEOUT"]
-        self.session = requests.Session()
-        self.session.headers.update({"User-Agent": "Mozilla/5.0 (Linux; Android 13)", "Accept": "application/json"})
+        self.base = "https://www.dapjimotionpro.my.id"
+        self.ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Mobile Safari/537.36"
+        self.timeout = 45
 
-    def _sha256(self, text):
-        return hashlib.sha256(text.encode()).hexdigest()
-
-    def _get_session(self):
+    def _post(self, url, body, referer):
         try:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36",
-                "X-Requested-With": "XMLHttpRequest",
-                "Cache-Control": "no-store",
-                "Origin": self.base_url,
-                "Referer": self.base_url + "/",
-                "Accept": "application/json"
-            }
-            resp = requests.get(f"{self.base_url}/api/session", headers=headers, timeout=self.timeout)
-            if resp.status_code != 200:
-                return {"status": False, "error": f"HTTP {resp.status_code}"}
-            data = resp.json()
-            if not data.get("status"):
-                return {"status": False, "error": "Invalid session"}
-            cookie = resp.headers.get("set-cookie", "").split(";")[0]
-            return {
-                "status": True,
-                "sessionId": data.get("sessionId"),
-                "token": data.get("token"),
-                "nonce": data.get("nonce"),
-                "timestamp": data.get("timestamp"),
-                "difficulty": data.get("difficulty", "0"),
-                "cookie": cookie
-            }
-        except Exception as e:
-            return {"status": False, "error": str(e)}
-
-    def _solve_pow(self, session, email, action, human_proof):
-        base = f"{session['sessionId']}:{session['nonce']}:{session['timestamp']}:{email.lower()}:{action}:{human_proof}:"
-        difficulty = session.get("difficulty", "0")
-        for i in range(500000):
-            if self._sha256(base + str(i)).startswith(difficulty):
-                return str(i)
-        return str(int(time.time() * 1000))
-
-    def _call_api(self, body):
-        try:
-            session = self._get_session()
-            if not session.get("status"):
-                return {"status": False, "error": session.get("error")}
-            delay = 2300 - (int(time.time() * 1000) - int(session.get("timestamp", 0)))
-            if delay > 0:
-                time.sleep(delay / 1000)
-            human_proof = self._sha256(f"human:{session['sessionId']}:{session['nonce']}:{session['timestamp']}:{body.get('email', '').lower()}:5:{self.secret}")
-            pow_solution = self._solve_pow(session, body.get("email", ""), body.get("action", ""), human_proof)
-            headers = {
-                "Content-Type": "application/json",
-                "X-Requested-With": "XMLHttpRequest",
-                "X-Amprem-Token": session["token"],
-                "X-Amprem-Nonce": session["nonce"],
-                "X-Amprem-Pow": pow_solution,
-                "X-Amprem-Human-Proof": human_proof,
-                "Cookie": session["cookie"],
-                "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36",
-                "Origin": self.base_url,
-                "Referer": self.base_url + "/",
-                "Accept": "application/json"
-            }
-            resp = requests.post(f"{self.base_url}/api/alight-motion", json=body, headers=headers, timeout=self.timeout)
+            r = requests.post(url, json=body, timeout=self.timeout, headers={
+                "User-Agent": self.ua, "Accept": "*/*", "Content-Type": "application/json",
+                "Origin": self.base, "Referer": referer,
+                "Accept-Language": "en-US,en;q=0.9,id-ID;q=0.8,id;q=0.7"
+            })
             try:
-                return {"status": True, "data": resp.json()}
+                data = r.json()
             except:
-                return {"status": False, "error": "Invalid response"}
+                return {"ok": False, "message": f"Invalid response: {r.text[:200]}"}
+            if data.get("status") is False or data.get("status") == "error" or data.get("success") is False:
+                return {"ok": False, "message": data.get("msg") or data.get("message") or data.get("error") or f"HTTP {r.status_code}"}
+            return {"ok": True, "message": data.get("msg") or data.get("message") or "OK", "data": data.get("data"), "email": body.get("email", "")}
         except Exception as e:
-            return {"status": False, "error": str(e)}
+            return {"ok": False, "message": str(e)}
 
-    def send_magic_link(self, email):
-        if not email or "@" not in email:
-            return {"status": False, "error": "Email tidak valid"}
-        result = self._call_api({"action": "send", "email": email})
-        if not result.get("status"):
-            return {"status": False, "error": result.get("error")}
-        data = result.get("data", {})
-        if not data.get("status"):
-            return {"status": False, "error": data.get("msg", "Failed")}
-        return {"status": True, "email": email, "message": data.get("msg", "Link sent to email")}
+    def v3_send(self, email):
+        return self._post(f"{self.base}/api/proxy-rafael?action=send", {"email": email}, f"{self.base}/generator-v3")
 
-    def activate_premium(self, email, link):
-        if not email or "@" not in email:
-            return {"status": False, "error": "Email tidak valid"}
-        if not link:
-            return {"status": False, "error": "Link required"}
-        result = self._call_api({"action": "verify", "email": email, "link": link.strip()})
-        if not result.get("status"):
-            return {"status": False, "error": result.get("error")}
-        data = result.get("data", {})
-        if not data.get("status"):
-            return {"status": False, "error": data.get("msg", "Failed")}
-        premium_data = data.get("data", {}).get("premium", {}).get("result", {})
-        return {
-            "status": True,
-            "email": email,
-            "message": data.get("msg", "Premium activated!"),
-            "premium": {
-                "active": premium_data.get("accountLinkStatus", False),
-                "expiry": premium_data.get("expiryTimeMillis", 0),
-                "auto_renew": premium_data.get("autoRenewing", False)
-            }
-        }
+    def v3_verify(self, email, link):
+        return self._post(f"{self.base}/api/proxy-rafael?action=verify", {"email": email, "rawLink": link}, f"{self.base}/generator-v3")
+
+    def v4_send(self, email):
+        return self._post(f"{self.base}/api/proxy-qsr", {"action": "send", "email": email}, f"{self.base}/generator-v4")
+
+    def v4_verify(self, email, link):
+        return self._post(f"{self.base}/api/proxy-qsr", {"action": "verify", "email": email, "link": link}, f"{self.base}/generator-v4")
 
 # ============================================
 # INISIALISASI API
 # ============================================
 dailymotion = DailymotionAPI()
 keyrafa = KeyrafaAPI()
-alight = AlightPremium()
+alight = AlightDapji()
 
 # ============================================
 # FUNGSI DATABASE (IN-MEMORY FOR VERCEL)
@@ -1638,13 +1560,9 @@ def api_alight_send():
     if not data or not data.get('email'):
         return jsonify({"status": "error", "message": "Email required"}), 400
     version = data.get('version', 'v3')
-    try:
-        from alightpro_wrapper import v3_send, v4_send
-        if version == 'v4':
-            return jsonify(v4_send(data['email']))
-        return jsonify(v3_send(data['email']))
-    except Exception as e:
-        return jsonify({"ok": False, "message": str(e)})
+    if version == 'v4':
+        return jsonify(alight.v4_send(data['email']))
+    return jsonify(alight.v3_send(data['email']))
 
 @app.route('/api/alight/activate', methods=['POST'])
 @require_tool_key
@@ -1653,13 +1571,9 @@ def api_alight_activate():
     if not data or not data.get('email') or not data.get('link'):
         return jsonify({"status": "error", "message": "Email and link required"}), 400
     version = data.get('version', 'v3')
-    try:
-        from alightpro_wrapper import v3_verify, v4_verify
-        if version == 'v4':
-            return jsonify(v4_verify(data['email'], data['link']))
-        return jsonify(v3_verify(data['email'], data['link']))
-    except Exception as e:
-        return jsonify({"ok": False, "message": str(e)})
+    if version == 'v4':
+        return jsonify(alight.v4_verify(data['email'], data['link']))
+    return jsonify(alight.v3_verify(data['email'], data['link']))
 
 # ============================================
 # MAIN
