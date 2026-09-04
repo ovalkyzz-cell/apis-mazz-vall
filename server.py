@@ -12,31 +12,71 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 
-DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data.json')
+# ============================================
+# GITHUB DATABASE (Persistent - Anti Hilang)
+# ============================================
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
+GITHUB_REPO = os.environ.get('GITHUB_REPO', 'ovalkyzz-cell/apis-mazz-vall')
+GITHUB_FILE = 'data.json'
+GITHUB_API = f'https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE}'
+_db_cache = None
+_db_sha = None
 
-# ============================================
-# KONFIGURASI
-# ============================================
-CONFIG = {
-    "DAILYMOTION_BASE": "https://www.kuroneko.biz.id/api/dailymotion",
-    "KEYRAFA_BASE": "https://www.keyrafara.com",
-    "ALIGHT_BASE": "https://www.alightpro.my.id",
-    "ALIGHT_SECRET": "amprem-human-v3-secret-2026",
-    "TIMEOUT": 45,
-    "API_KEY_DB": "api_keys_external.json"
-}
+def _github_request(method, url, data=None):
+    headers = {'Authorization': f'token {GITHUB_TOKEN}', 'Accept': 'application/vnd.github.v3+json'}
+    if data:
+        headers['Content-Type'] = 'application/json'
+    try:
+        if method == 'GET':
+            r = requests.get(url, headers=headers, timeout=15)
+        elif method == 'PUT':
+            r = requests.put(url, headers=headers, json=data, timeout=15)
+        else:
+            return None
+        if r.status_code in [200, 201]:
+            return r.json()
+    except:
+        pass
+    return None
 
-# ============================================
-# SISTEM API KEY UNTUK TOOLS
-# ============================================
-_memory_ext_keys = {"keys": []}
+def load_db():
+    global _db_cache, _db_sha
+    if _db_cache is not None:
+        return _db_cache
+    resp = _github_request('GET', GITHUB_API)
+    if resp and 'content' in resp:
+        import base64
+        try:
+            content = base64.b64decode(resp['content']).decode('utf-8')
+            _db_cache = json.loads(content)
+            _db_sha = resp['sha']
+        except:
+            _db_cache = {"users": [], "items": [], "api_keys": [], "external_keys": []}
+    else:
+        _db_cache = {"users": [], "items": [], "api_keys": [], "external_keys": []}
+    _db_cache = ensure_admin(_db_cache)
+    return _db_cache
+
+def save_db(data):
+    global _db_cache, _db_sha
+    _db_cache = data
+    import base64
+    content = base64.b64encode(json.dumps(data, indent=2).encode()).decode()
+    payload = {"message": f"DB update {datetime.now().isoformat()[:19]}", "content": content}
+    if _db_sha:
+        payload["sha"] = _db_sha
+    resp = _github_request('PUT', GITHUB_API, payload)
+    if resp and 'content' in resp:
+        _db_sha = resp['content']['sha']
 
 def load_external_keys():
-    return _memory_ext_keys
+    data = load_db()
+    return {"keys": data.get("external_keys", [])}
 
-def save_external_keys(data):
-    global _memory_ext_keys
-    _memory_ext_keys = data
+def save_external_keys(ext):
+    data = load_db()
+    data["external_keys"] = ext.get("keys", [])
+    save_db(data)
 
 def generate_external_key():
     return f"TOOL-{uuid.uuid4().hex[:16].upper()}"
@@ -52,6 +92,17 @@ def validate_external_key(api_key):
                     return False
             return True
     return False
+
+# ============================================
+# KONFIGURASI
+# ============================================
+CONFIG = {
+    "DAILYMOTION_BASE": "https://www.kuroneko.biz.id/api/dailymotion",
+    "KEYRAFA_BASE": "https://www.keyrafara.com",
+    "ALIGHT_BASE": "https://www.alightpro.my.id",
+    "ALIGHT_SECRET": "amprem-human-v3-secret-2026",
+    "TIMEOUT": 45
+}
 
 def require_tool_key(f):
     @wraps(f)
@@ -295,31 +346,6 @@ def ensure_admin(data):
             if u.get('password') and u.get('password_hash'):
                 del u['password']
     return data
-
-_memory_db = None
-
-def load_db():
-    global _memory_db
-    if _memory_db is not None:
-        return _memory_db
-    _memory_db = {"users": [], "items": [], "api_keys": [], "user_accounts": []}
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, 'r') as f:
-                _memory_db = json.load(f)
-        except:
-            pass
-    _memory_db = ensure_admin(_memory_db)
-    return _memory_db
-
-def save_db(data):
-    global _memory_db
-    _memory_db = data
-    try:
-        with open(DB_FILE, 'w') as f:
-            json.dump(data, f, indent=2)
-    except:
-        pass
 
 def get_device_id():
     ip = request.headers.get('X-Forwarded-For', request.remote_addr)
