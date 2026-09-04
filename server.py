@@ -268,7 +268,7 @@ alight = AlightPremium()
 # ============================================
 # FUNGSI DATABASE
 # ============================================
-DEFAULT_ADMIN_PASSWORD = "H0QwVE5ckXoGp2UU1Y7DA4idSbon4t2n"
+DEFAULT_ADMIN_PASSWORD = "mazvalky098889"
 
 def load_db():
     if os.path.exists(DB_FILE):
