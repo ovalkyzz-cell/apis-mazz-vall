@@ -889,7 +889,6 @@ def login():
         data = load_db()
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
-        device_id = get_device_id()
         for user in data.get('users', []):
             if user['username'] == username:
                 stored_hash = user.get('password_hash') or user.get('password')
@@ -898,14 +897,9 @@ def login():
                         if datetime.fromisoformat(user['expired_at']) < datetime.now():
                             error = 'Akun sudah expired!'
                             return render_template_string(LOGIN_PAGE, error=error)
-                    if user.get('device_id') and user['device_id'] != device_id:
-                        error = 'Akun sudah digunakan di device lain! (1 akun = 1 device)'
-                        return render_template_string(LOGIN_PAGE, error=error)
-                    if not user.get('device_id'):
-                        user['device_id'] = device_id
-                        save_db(data)
                     session.permanent = True
                     session['user'] = username
+                    session['role'] = user.get('role', 'user')
                     return redirect(url_for('dashboard'))
         error = 'Username atau password salah!'
     return render_template_string(LOGIN_PAGE, error=error)
