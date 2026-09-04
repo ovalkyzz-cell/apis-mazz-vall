@@ -684,8 +684,8 @@ API_DOCS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="
 <div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/translate?text=...&to=en&from=auto</strong><p style="margin-top:8px;color:#666;">Terjemahkan teks</p></div>
 <div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/ssweb?url=...</strong><p style="margin-top:8px;color:#666;">Screenshot website</p></div>
 <div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/gempa?type=auto</strong><p style="margin-top:8px;color:#666;">Info gempa terkini</p></div>
-<div class="api-endpoint"><span class="api-method method-post">POST</span><strong>/api/alight/send</strong><p style="margin-top:8px;color:#666;">Kirim magic link Alight Motion. Body: {"email":"..."}</p></div>
-<div class="api-endpoint"><span class="api-method method-post">POST</span><strong>/api/alight/activate</strong><p style="margin-top:8px;color:#666;">Aktivasi premium Alight. Body: {"email":"...","link":"..."}</p></div>
+<div class="api-endpoint"><span class="api-method method-post">POST</span><strong>/api/alight/send</strong><p style="margin-top:8px;color:#666;">Kirim magic link Alight Motion. Body: {"email":"...","version":"v3|v4"}</p></div>
+<div class="api-endpoint"><span class="api-method method-post">POST</span><strong>/api/alight/activate</strong><p style="margin-top:8px;color:#666;">Aktivasi premium Alight. Body: {"email":"...","link":"...","version":"v3|v4"}</p></div>
 <div class="api-endpoint"><span class="api-method method-post">POST</span><strong>/api/external/keys/create</strong><p style="margin-top:8px;color:#666;">Buat TOOL-xxx key baru. Body: {"name":"..."}</p></div>
 <div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/external/keys/list</strong><p style="margin-top:8px;color:#666;">List semua TOOL-xxx keys</p></div>
 </div>
