@@ -28,18 +28,14 @@ CONFIG = {
 # ============================================
 # SISTEM API KEY UNTUK TOOLS
 # ============================================
+_memory_ext_keys = {"keys": []}
+
 def load_external_keys():
-    if os.path.exists(CONFIG["API_KEY_DB"]):
-        try:
-            with open(CONFIG["API_KEY_DB"], "r") as f:
-                return json.load(f)
-        except:
-            return {"keys": []}
-    return {"keys": []}
+    return _memory_ext_keys
 
 def save_external_keys(data):
-    with open(CONFIG["API_KEY_DB"], "w") as f:
-        json.dump(data, f, indent=2)
+    global _memory_ext_keys
+    _memory_ext_keys = data
 
 def generate_external_key():
     return f"TOOL-{uuid.uuid4().hex[:16].upper()}"
@@ -266,7 +262,7 @@ keyrafa = KeyrafaAPI()
 alight = AlightPremium()
 
 # ============================================
-# FUNGSI DATABASE
+# FUNGSI DATABASE (IN-MEMORY FOR VERCEL)
 # ============================================
 DEFAULT_ADMIN_PASSWORD = "mazvalky098889"
 
@@ -293,25 +289,30 @@ def ensure_admin(data):
                 del u['password']
     return data
 
+_memory_db = None
+
 def load_db():
+    global _memory_db
+    if _memory_db is not None:
+        return _memory_db
+    _memory_db = {"users": [], "items": [], "api_keys": [], "user_accounts": []}
     if os.path.exists(DB_FILE):
         try:
             with open(DB_FILE, 'r') as f:
-                data = json.load(f)
-            data = ensure_admin(data)
-            return data
+                _memory_db = json.load(f)
         except:
             pass
-    return ensure_admin({
-        "users": [],
-        "items": [],
-        "api_keys": [],
-        "user_accounts": []
-    })
+    _memory_db = ensure_admin(_memory_db)
+    return _memory_db
 
 def save_db(data):
-    with open(DB_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
+    global _memory_db
+    _memory_db = data
+    try:
+        with open(DB_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+    except:
+        pass
 
 def get_device_id():
     ip = request.headers.get('X-Forwarded-For', request.remote_addr)
