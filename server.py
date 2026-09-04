@@ -248,11 +248,80 @@ class AlightDapji:
         return self._post(f"{self.base}/api/proxy-qsr", {"action": "verify", "email": email, "link": link}, f"{self.base}/generator-v4")
 
 # ============================================
+# CLASS: NETFLIX TOKEN GENERATOR (nftools)
+# ============================================
+class NFTokenGenerator:
+    def __init__(self):
+        self.base = "https://nftools.aroshi.my.id"
+        self.ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Mobile Safari/537.36"
+        self.timeout = 30
+
+    def _sha256(self, text):
+        return hashlib.sha256(text.encode()).hexdigest()
+
+    def _solve_pow(self, challenge):
+        for n in range(2000000):
+            if self._sha256(challenge + str(n)).startswith("0000"):
+                return f"{challenge}:{n}"
+        return None
+
+    def _get_session(self):
+        try:
+            r = requests.post(f"{self.base}/api/session", json={}, timeout=self.timeout, headers={
+                "Content-Type": "application/json",
+                "User-Agent": self.ua,
+                "Origin": self.base,
+                "Referer": f"{self.base}/nftoken"
+            })
+            data = r.json()
+            if data.get("success"):
+                return {"ok": True, "token": data.get("token")}
+            return {"ok": False, "message": data.get("error", "Session failed - Cloudflare protection active")}
+        except Exception as e:
+            return {"ok": False, "message": f"Connection error: {str(e)}"}
+
+    def _generate_one(self, plan):
+        try:
+            session = self._get_session()
+            if not session.get("ok"):
+                return {"success": False, "error": session.get("message", "Session failed")}
+            token = session["token"]
+            headers = {"Content-Type": "application/json", "X-NFToken-Session": token, "User-Agent": self.ua, "Origin": self.base, "Referer": f"{self.base}/nftoken"}
+            r1 = requests.post(f"{self.base}/api/random", json={"plan": plan}, headers=headers, timeout=self.timeout)
+            d1 = r1.json()
+            if d1.get("powChallenge"):
+                proof = self._solve_pow(d1["powChallenge"])
+                if not proof:
+                    return {"success": False, "error": "PoW solve failed"}
+                headers["X-PoW-Proof"] = proof
+                r2 = requests.post(f"{self.base}/api/random", json={"plan": plan}, headers=headers, timeout=self.timeout)
+                d2 = r2.json()
+                if d2.get("success") and d2.get("url"):
+                    return {"success": True, "plan": d2.get("plan", plan), "quality": d2.get("quality", "—"), "country": d2.get("country", "Unknown"), "url": d2["url"], "expires": d2.get("expires")}
+                return {"success": False, "error": d2.get("error", "Generation failed")}
+            if d1.get("success") and d1.get("url"):
+                return {"success": True, "plan": d1.get("plan", plan), "quality": d1.get("quality", "—"), "country": d1.get("country", "Unknown"), "url": d1["url"], "expires": d1.get("expires")}
+            return {"success": False, "error": d1.get("error", "Unknown error")}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def generate(self, plan="premium", count=1):
+        results = []
+        for i in range(min(count, 5)):
+            r = self._generate_one(plan)
+            if r.get("success"):
+                results.append(r)
+            if i < count - 1:
+                time.sleep(2)
+        return {"ok": len(results) > 0, "results": results, "total": len(results), "requested": count}
+
+# ============================================
 # INISIALISASI API
 # ============================================
 dailymotion = DailymotionAPI()
 keyrafa = KeyrafaAPI()
 alight = AlightDapji()
+nftoken = NFTokenGenerator()
 
 # ============================================
 # FUNGSI DATABASE (IN-MEMORY FOR VERCEL)
@@ -825,7 +894,6 @@ TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <div style="display:flex;gap:10px;flex-wrap:wrap;">
 <input type="text" id="tool-api-key" placeholder="Masukkan API Key" style="flex:1;min-width:200px;">
 <button class="btn btn-primary" id="btn-set-key">Set API Key</button>
-<button class="btn btn-warning" id="btn-gen-key">+ Generate Key</button>
 </div>
 <div id="key-status" style="margin-top:10px;color:#666;font-size:13px;"></div>
 </div>
@@ -875,6 +943,15 @@ TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <button class="btn btn-secondary" id="btn-screenshot">Screenshot</button>
 </div>
 <div id="tool-result" style="margin-top:10px;"></div>
+</div>
+<div class="card visible"><h2>Netflix Token Generator</h2>
+<p style="color:#666;font-size:14px;margin-bottom:12px;">Generate Netflix premium token links</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+<select id="nft-plan"><option value="premium">Premium</option><option value="standard">Standard</option><option value="basic">Basic</option></select>
+<select id="nft-count"><option value="1">1 Link</option><option value="3">3 Links</option><option value="5">5 Links</option></select>
+<button class="btn btn-primary" id="btn-nft-generate">Generate Token</button>
+</div>
+<div id="nft-result" style="margin-top:10px;"></div>
 </div>
 </div>
 <p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
@@ -1105,21 +1182,38 @@ if(apiKey){
   $('tool-api-key').value=apiKey;
   $('key-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">&#10003; AKTIF: <strong>'+apiKey+'</strong> — Semua tools siap dipakai!</span>';
 } else {
-  $('key-status').innerHTML='<span style="color:#FFD60A;font-weight:700;">Membuat API Key otomatis...</span>';
-  fetch('/api/external/keys/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Auto-' + Date.now()})})
-  .then(function(r){return r.json();})
-  .then(function(d){
-    if(d.status==='success'&&d.api_key){
-      apiKey=d.api_key;
-      localStorage.setItem('toolApiKey',d.api_key);
-      $('tool-api-key').value=d.api_key;
-      $('key-status').innerHTML='<span style="color:#4ECDC4;font-weight:700;">&#10003; AKTIF: <strong>'+d.api_key+'</strong> — Semua tools siap dipakai!</span>';
-    } else {
-      $('key-status').innerHTML='<span style="color:#FF6B6B;">Gagal buat key. Generate manual.</span>';
-    }
-  })
-  .catch(function(e){$('key-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
+  $('key-status').innerHTML='<span style="color:#FFD60A;font-weight:700;">Masukkan API Key dari Admin</span>';
 }
+});
+
+if($('btn-nft-generate')) $('btn-nft-generate').addEventListener('click', function(){
+if(noKey())return;
+var plan=$('nft-plan').value;
+var count=$('nft-count').value;
+var btn=this; btn.disabled=true; btn.textContent='Generating...';
+showLoading('nft-result');
+fetch('/api/nftoken/generate',{method:'POST',headers:getHeaders(),body:JSON.stringify({plan:plan,count:parseInt(count)})})
+.then(function(r){return r.json();})
+.then(function(d){
+var c=$('nft-result');
+if(d.ok&&d.results&&d.results.length>0){
+var h='<div style="background:#CAFFBF;padding:16px;border:3px solid #000;border-radius:10px;">';
+h+='<h3>Netflix Token Generated! ('+d.results.length+' links)</h3>';
+d.results.forEach(function(r,i){
+h+='<div style="margin:10px 0;padding:10px;background:#fff;border:2px solid #000;border-radius:8px;">';
+h+='<strong>Link '+(i+1)+'</strong> — '+(r.country||'Unknown')+'<br>';
+h+='<div style="font-size:12px;color:#666;">Plan: '+(r.plan||plan)+' | Quality: '+(r.quality||'—')+'</div>';
+h+='<a href="'+r.url+'" target="_blank" style="color:#000;font-weight:700;word-break:break-all;display:block;margin-top:4px;">'+r.url+'</a>';
+h+='</div>';
+});
+h+='</div>';c.innerHTML=h;
+}else{
+c.innerHTML='<div style="background:#FFB3B3;padding:16px;border:3px solid #000;border-radius:10px;"><h3>Gagal</h3><p>'+(d.message||d.error||'Unknown error')+'</p></div>';
+}
+})
+.catch(function(e){showError('nft-result',e.message);})
+.then(function(){btn.disabled=false;btn.textContent='Generate Token';});
+});
 });
 </script>
 </body></html>"""
@@ -1210,6 +1304,61 @@ def users_page():
     return render_template_string(
         USERS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS),
         users=users
+    )
+
+@app.route('/settings')
+@admin_required
+def settings_page():
+    db = load_db()
+    settings = db.get("settings", {})
+    return render_template_string("""
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Settings - Admin</title>
+<style>{style}</style></head><body>
+<nav><div class="nav-inner"><a href="/" class="logo">Rest Api Mazz Vall</a>
+<div class="nav-links"><a href="/">Dashboard</a><a href="/items">Items</a><a href="/api-keys">API Keys</a><a href="/users">Users</a><a href="/settings" class="active">Settings</a><a href="/tools">Tools</a><a href="/logout" style="background:#FF6B6B;">Logout</a></div></div></nav>
+<div class="container">
+<div class="page-title visible"><h1>Admin Settings</h1><p>Konfigurasi rate limit dan batasan</p></div>
+<div class="card visible">
+<h2>Rate Limits</h2>
+<div style="display:grid;gap:16px;margin-top:16px;">
+<div><label style="font-weight:700;display:block;margin-bottom:4px;">Max API Keys per Hari</label>
+<input type="number" id="max-keys" value="%%MAX_KEYS%%" style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
+<div><label style="font-weight:700;display:block;margin-bottom:4px;">Key Duration (hari)</label>
+<input type="number" id="key-duration" value="%%KEY_DURATION%%" style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
+<div><label style="font-weight:700;display:block;margin-bottom:4px;">Max NFToken per Request</label>
+<input type="number" id="nft-max" value="%%NFT_MAX%%" style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
+<div><label style="font-weight:700;display:block;margin-bottom:4px;">NFToken Daily Limit</label>
+<input type="number" id="nft-daily" value="%%NFT_DAILY%%" style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
+</div>
+<button class="btn btn-primary" id="btn-save-settings" style="margin-top:16px;">Save Settings</button>
+<div id="settings-status" style="margin-top:10px;"></div>
+</div>
+</div>
+<p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+document.getElementById('btn-save-settings').addEventListener('click', function(){
+var data = {
+max_keys_per_day: parseInt(document.getElementById('max-keys').value) || 10,
+key_duration_days: parseInt(document.getElementById('key-duration').value) || 30,
+nft_max_per_request: parseInt(document.getElementById('nft-max').value) || 5,
+nft_daily_limit: parseInt(document.getElementById('nft-daily').value) || 20
+};
+fetch('/api/admin/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+.then(function(r){return r.json();})
+.then(function(d){
+document.getElementById('settings-status').innerHTML = d.status==='success' ?
+'<span style="color:#4ECDC4;font-weight:700;">Settings saved!</span>' :
+'<span style="color:#FF6B6B;">Error: '+d.message+'</span>';
+})
+.catch(function(e){document.getElementById('settings-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
+});
+});
+</script></body></html>""",
+        MAX_KEYS=settings.get("max_keys_per_day", 10),
+        KEY_DURATION=settings.get("key_duration_days", 30),
+        NFT_MAX=settings.get("nft_max_per_request", 5),
+        NFT_DAILY=settings.get("nft_daily_limit", 20)
     )
 
 @app.route('/tools')
@@ -1429,6 +1578,7 @@ def api_auth():
 # ROUTE API UNTUK TOOLS (WAJIB API KEY)
 # ============================================
 @app.route('/api/external/keys/create', methods=['POST'])
+@admin_required
 def create_external_key():
     data = request.get_json() or request.form
     name = data.get('name', 'Tool User')
@@ -1457,6 +1607,29 @@ def list_external_keys():
         })
     return jsonify({"status": "success", "keys": keys})
 
+@app.route('/api/admin/settings', methods=['GET'])
+@admin_required
+def get_admin_settings():
+    db = load_db()
+    settings = db.get("settings", {})
+    return jsonify({"status": "success", "settings": settings})
+
+@app.route('/api/admin/settings', methods=['POST'])
+@admin_required
+def save_admin_settings():
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "No data"}), 400
+    db = load_db()
+    db["settings"] = {
+        "max_keys_per_day": data.get("max_keys_per_day", 10),
+        "key_duration_days": data.get("key_duration_days", 30),
+        "allow_registration": data.get("allow_registration", True),
+        "nft_max_per_request": data.get("nft_max_per_request", 5),
+        "nft_daily_limit": data.get("nft_daily_limit", 20),
+    }
+    save_db(db)
+    return jsonify({"status": "success", "message": "Settings saved"})
 @app.route('/api/dailymotion', methods=['GET'])
 @require_tool_key
 def api_dailymotion():
@@ -1572,6 +1745,14 @@ def api_alight_activate():
     if version == 'v4':
         return jsonify(alight.v4_verify(data['email'], data['link']))
     return jsonify(alight.v3_verify(data['email'], data['link']))
+
+@app.route('/api/nftoken/generate', methods=['POST'])
+@require_tool_key
+def api_nftoken_generate():
+    data = request.get_json()
+    plan = data.get('plan', 'premium')
+    count = min(data.get('count', 1), 5)
+    return jsonify(nftoken.generate(plan, count))
 
 # ============================================
 # MAIN
