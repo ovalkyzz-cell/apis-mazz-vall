@@ -225,12 +225,21 @@ class AlightPremium:
 
     def _get_session(self):
         try:
-            resp = self.session.get(f"{self.base_url}/api/session", timeout=self.timeout)
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36",
+                "X-Requested-With": "XMLHttpRequest",
+                "Cache-Control": "no-store",
+                "Origin": self.base_url,
+                "Referer": self.base_url + "/",
+                "Accept": "application/json"
+            }
+            resp = requests.get(f"{self.base_url}/api/session", headers=headers, timeout=self.timeout)
             if resp.status_code != 200:
                 return {"status": False, "error": f"HTTP {resp.status_code}"}
             data = resp.json()
             if not data.get("status"):
                 return {"status": False, "error": "Invalid session"}
+            cookie = resp.headers.get("set-cookie", "").split(";")[0]
             return {
                 "status": True,
                 "sessionId": data.get("sessionId"),
@@ -238,7 +247,7 @@ class AlightPremium:
                 "nonce": data.get("nonce"),
                 "timestamp": data.get("timestamp"),
                 "difficulty": data.get("difficulty", "0"),
-                "cookie": resp.headers.get("set-cookie", "").split(";")[0]
+                "cookie": cookie
             }
         except Exception as e:
             return {"status": False, "error": str(e)}
@@ -269,8 +278,12 @@ class AlightPremium:
                 "X-Amprem-Pow": pow_solution,
                 "X-Amprem-Human-Proof": human_proof,
                 "Cookie": session["cookie"],
+                "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36",
+                "Origin": self.base_url,
+                "Referer": self.base_url + "/",
+                "Accept": "application/json"
             }
-            resp = self.session.post(f"{self.base_url}/api/alight-motion", json=body, headers=headers, timeout=self.timeout)
+            resp = requests.post(f"{self.base_url}/api/alight-motion", json=body, headers=headers, timeout=self.timeout)
             try:
                 return {"status": True, "data": resp.json()}
             except:
@@ -954,11 +967,18 @@ var c=$(containerId);var items=data.data||data.results||data.items||data.videos|
 if(!items||items.length===0){c.innerHTML='<p style="color:#666;">Tidak ada video ditemukan.</p>';return;}
 var h='<div class="video-grid">';
 for(var i=0;i<Math.min(items.length,20);i++){var it=items[i];
-h+='<div class="video-card visible">';
 var t=it.thumbnail||it.poster||it.image||'';
-if(t)h+='<img src="'+t+'" alt="" onerror="this.remove()">';
-h+='<h3>'+(it.title||'No Title').substring(0,40)+'</h3>';
-h+='<div class="link">ID: '+(it.id||'')+'</div>';
+var embed=it.embed_url||'';
+var title=it.title||'No Title';
+var vid=it.id||it.video_id||'';
+var views=it.views||it.view_count||0;
+if(typeof views==='number')views=views.toLocaleString();
+h+='<div class="video-card visible">';
+if(embed){h+='<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin-bottom:8px;"><iframe src="'+embed+'" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen allow="autoplay; encrypted-media" loading="lazy"></iframe></div>';}
+else if(t){h+='<img src="'+t+'" alt="" onerror="this.remove()" style="width:100%;border-radius:8px;margin-bottom:8px;">';}
+h+='<h3 title="'+title+'">'+title.substring(0,50)+'</h3>';
+if(vid)h+='<div class="link">ID: '+vid+'</div>';
+if(views)h+='<div class="link">'+views+' views</div>';
 h+='</div>';}
 h+='</div>';c.innerHTML=h;}
 
@@ -968,9 +988,10 @@ if(!info||info.length===0){c.innerHTML='<p style="color:#666;">Tidak ada event d
 var h='<div class="video-grid">';
 for(var i=0;i<Math.min(info.length,20);i++){var ev=info[i];
 h+='<div class="video-card visible">';
-if(ev.image)h+='<img src="'+ev.image+'" alt="" onerror="this.remove()">';
-h+='<h3>'+(ev.name||'').substring(0,40)+'</h3>';
+if(ev.image)h+='<img src="'+ev.image+'" alt="" onerror="this.remove()" style="width:100%;border-radius:8px;margin-bottom:8px;">';
+h+='<h3>'+(ev.name||'').substring(0,50)+'</h3>';
 if(ev.tagline)h+='<div class="link">'+ev.tagline+'</div>';
+if(ev.hls){h+='<div style="margin-top:8px;"><video controls style="width:100%;max-height:300px;border-radius:8px;border:2px solid #000;"><source src="'+ev.hls+'" type="application/x-mpegURL"></video></div>';}
 h+='</div>';}
 h+='</div>';c.innerHTML=h;}
 
@@ -980,10 +1001,12 @@ if(!items||items.length===0){c.innerHTML='<p style="color:#666;">Tidak ada film 
 var h='<div class="video-grid">';
 for(var i=0;i<Math.min(items.length,20);i++){var m=items[i];
 h+='<div class="video-card visible">';
-if(m.poster)h+='<img src="'+m.poster+'" alt="" onerror="this.remove()">';
-h+='<h3>'+(m.title||'').substring(0,40)+'</h3>';
+if(m.poster)h+='<img src="'+m.poster+'" alt="" onerror="this.remove()" style="width:100%;border-radius:8px;margin-bottom:8px;">';
+h+='<h3>'+(m.title||'').substring(0,50)+'</h3>';
 if(m.year)h+='<div class="link">'+m.year+'</div>';
-if(m.imdbRating)h+='<div class="link">'+m.imdbRating+'</div>';
+if(m.imdbRating)h+='<div class="link">IMDb: '+m.imdbRating+'</div>';
+h+='</div>';}
+h+='</div>';c.innerHTML=h;}
 h+='</div>';}
 h+='</div>';c.innerHTML=h;}
 
