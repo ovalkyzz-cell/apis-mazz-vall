@@ -59,9 +59,15 @@ def require_tool_key(f):
         api_key = request.headers.get("X-API-Key") or request.args.get("api_key") or request.form.get("api_key")
         if not api_key:
             return jsonify({"status": "error", "message": "API key required"}), 401
-        if not validate_external_key(api_key):
-            return jsonify({"status": "error", "message": "Invalid or expired API key"}), 401
-        return f(*args, **kwargs)
+        if api_key.startswith('TOOL-'):
+            if validate_external_key(api_key):
+                return f(*args, **kwargs)
+        valid, msg = validate_api_key(api_key, request)
+        if valid:
+            return f(*args, **kwargs)
+        if validate_external_key(api_key):
+            return f(*args, **kwargs)
+        return jsonify({"status": "error", "message": "Invalid or expired API key"}), 401
     return decorated
 
 # ============================================
@@ -360,18 +366,12 @@ def validate_api_key(api_key, req):
     exp = datetime.fromisoformat(key_obj['expires_at'])
     if datetime.now() > exp:
         return False, "API key sudah expired"
-    fingerprint = get_device_fingerprint(req)
-    if key_obj.get('device_fingerprint') and key_obj['device_fingerprint'] != fingerprint:
-        return False, "API key tidak bisa digunakan di device lain"
-    if not key_obj.get('device_fingerprint'):
-        key_obj['device_fingerprint'] = fingerprint
-        save_db(data)
     return True, "OK"
 
 # ============================================
 # TEMPLATE HTML
 # ============================================
-COPYRIGHT = "&copy; Created Mazvall official Hak cipta"
+COPYRIGHT = "&copy; Created Rest Api Mazz Vall Hak cipta"
 
 BASE_STYLE = """
 <style>
@@ -456,7 +456,7 @@ document.querySelectorAll('.fade-in,.scale-in').forEach(function(el){o.observe(e
 </script>
 """
 
-LOGIN_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Login - Mazvall official</title>
+LOGIN_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Login - Rest Api Mazz Vall</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -478,7 +478,7 @@ body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;display:
 </style></head><body>
 <div class="login-container"><div class="login-box">
 <div class="icon">&#128274;</div>
-<h1>Mazvall official</h1>
+<h1>Rest Api Mazz Vall</h1>
 <p class="subtitle">Masuk ke dashboard admin</p>
 {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
 <form method="POST" action="/login">
@@ -486,11 +486,11 @@ body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;display:
 <div class="form-group"><label>Password</label><input type="password" name="password" placeholder="Masukkan password" required></div>
 <button type="submit" class="login-btn">Masuk &#8594;</button>
 </form>
-<p class="credit">&copy; Created Mazvall official Hak cipta</p>
+<p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
 </div></div></body></html>"""
 
-DASHBOARD_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Dashboard - Mazvall official</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Mazvall official</div><div class="nav-links">
+DASHBOARD_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Dashboard - Rest Api Mazz Vall</title>{style}</head><body>
+<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
 <a href="/" class="active">Dashboard</a>
 <a href="/items">Items</a>
 <a href="/api-keys">API Keys</a>
@@ -509,7 +509,10 @@ DASHBOARD_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name=
 </div>
 <div class="card fade-in">
 <h2>Quick Info</h2>
-<p style="color:#666;font-size:14px;margin-bottom:12px;">Selamat datang di panel admin <strong>Mazvall official</strong>.</p>
+<p style="color:#666;font-size:14px;margin-bottom:12px;">Selamat datang di panel admin <strong>Rest Api Mazz Vall</strong>.</p>
+<div style="background:#f0f0f0;padding:12px;border-radius:8px;border:2px solid #000;margin-bottom:12px;font-family:monospace;">
+<strong>Base URL:</strong> <a href="https://valky-official.zone.id/api" target="_blank" style="color:#000;text-decoration:underline;">https://valky-official.zone.id/api</a>
+</div>
 <div style="display:flex;gap:10px;flex-wrap:wrap;">
 <a href="/api-keys" class="btn btn-primary">Kelola API Keys</a>
 <a href="/items" class="btn btn-warning">Kelola Items</a>
@@ -518,11 +521,11 @@ DASHBOARD_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name=
 </div>
 </div>
 </div>
-<p class="credit">&copy; Created Mazvall official Hak cipta</p>
+<p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
 {script}</body></html>"""
 
-ITEMS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Items - Mazvall official</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Mazvall official</div><div class="nav-links">
+ITEMS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Items - Rest Api Mazz Vall</title>{style}</head><body>
+<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
 <a href="/">Dashboard</a>
 <a href="/items" class="active">Items</a>
 <a href="/api-keys">API Keys</a>
@@ -534,7 +537,7 @@ ITEMS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <div class="container">
 <div class="page-title fade-in" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 <div><h1>Items</h1><p>Kelola data items Anda</p></div>
-<button class="btn btn-primary" onclick="openModal()">+ Tambah Item</button>
+<button class="btn btn-primary" id="btn-add-item">+ Tambah Item</button>
 </div>
 <div class="card fade-in">
 <div class="table-wrapper">
@@ -548,8 +551,8 @@ ITEMS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <td>Rp {{ "{:,.0f}".format(item.price) }}</td>
 <td><span class="badge {{ 'badge-green' if item.active else 'badge-red' }}">{{ 'Active' if item.active else 'Inactive' }}</span></td>
 <td style="white-space:nowrap;">
-<button class="btn btn-warning btn-sm" onclick="editItem('{{ item.id }}','{{ item.name }}',{{ item.price }},{{ 'true' if item.active else 'false' }})">Edit</button>
-<button class="btn btn-danger btn-sm" onclick="deleteItem('{{ item.id }}')">Hapus</button>
+<button class="btn btn-warning btn-sm btn-edit" data-id="{{ item.id }}" data-name="{{ item.name }}" data-price="{{ item.price }}" data-active="{{ 'true' if item.active else 'false' }}">Edit</button>
+<button class="btn btn-danger btn-sm btn-delete" data-id="{{ item.id }}">Hapus</button>
 </td>
 </tr>
 {% endfor %}
@@ -561,30 +564,44 @@ ITEMS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <div class="modal-overlay" id="modal">
 <div class="modal scale-in">
 <h2 style="margin-bottom:16px;" id="modal-title">Tambah Item</h2>
-<form onsubmit="submitForm(event)">
+<form id="item-form">
 <input type="hidden" id="edit-id" value="">
 <div class="form-group"><label>Nama Item</label><input type="text" id="item-name" required></div>
 <div class="form-group"><label>Harga (Rp)</label><input type="number" id="item-price" required></div>
 <div class="form-group"><label>Status</label><select id="item-active"><option value="true">Active</option><option value="false">Inactive</option></select></div>
 <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
 <button type="submit" class="btn btn-primary">Simpan</button>
-<button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
+<button type="button" class="btn btn-secondary" id="btn-close-modal">Batal</button>
 </div>
 </form>
 </div>
 </div>
-<p class="credit">&copy; Created Mazvall official Hak cipta</p>
+<p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
 <script>
-function openModal(){document.getElementById('edit-id').value='';document.getElementById('item-name').value='';document.getElementById('item-price').value='';document.getElementById('item-active').value='true';document.getElementById('modal-title').textContent='Tambah Item';document.getElementById('modal').classList.add('active');}
-function closeModal(){document.getElementById('modal').classList.remove('active');}
-function editItem(id,name,price,active){document.getElementById('edit-id').value=id;document.getElementById('item-name').value=name;document.getElementById('item-price').value=price;document.getElementById('item-active').value=active;document.getElementById('modal-title').textContent='Edit Item';document.getElementById('modal').classList.add('active');}
-function submitForm(e){e.preventDefault();var id=document.getElementById('edit-id').value;var data={name:document.getElementById('item-name').value,price:parseFloat(document.getElementById('item-price').value),active:document.getElementById('item-active').value==='true'};var url=id?'/api/items/'+id:'/api/items';fetch(url,{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){return r.json();}).then(function(){location.reload();});}
-function deleteItem(id){if(confirm('Yakin hapus?')){fetch('/api/items/'+id,{method:'DELETE'}).then(function(r){return r.json();}).then(function(){location.reload();});}}
+document.addEventListener('DOMContentLoaded', function(){
+document.getElementById('btn-add-item').addEventListener('click',function(){
+document.getElementById('edit-id').value='';document.getElementById('item-name').value='';document.getElementById('item-price').value='';document.getElementById('item-active').value='true';document.getElementById('modal-title').textContent='Tambah Item';document.getElementById('modal').classList.add('active');
+});
+document.getElementById('btn-close-modal').addEventListener('click',function(){document.getElementById('modal').classList.remove('active');});
+document.querySelectorAll('.btn-edit').forEach(function(btn){
+btn.addEventListener('click',function(){
+document.getElementById('edit-id').value=this.dataset.id;document.getElementById('item-name').value=this.dataset.name;document.getElementById('item-price').value=this.dataset.price;document.getElementById('item-active').value=this.dataset.active;document.getElementById('modal-title').textContent='Edit Item';document.getElementById('modal').classList.add('active');
+});
+});
+document.querySelectorAll('.btn-delete').forEach(function(btn){
+btn.addEventListener('click',function(){
+if(confirm('Yakin hapus?')){fetch('/api/items/'+this.dataset.id,{method:'DELETE'}).then(function(r){return r.json();}).then(function(){location.reload();});}
+});
+});
+document.getElementById('item-form').addEventListener('submit',function(e){
+e.preventDefault();var id=document.getElementById('edit-id').value;var data={name:document.getElementById('item-name').value,price:parseFloat(document.getElementById('item-price').value),active:document.getElementById('item-active').value==='true'};var url=id?'/api/items/'+id:'/api/items';fetch(url,{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){return r.json();}).then(function(){location.reload();});
+});
+});
 </script>
 {script}</body></html>"""
 
-API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Keys - Mazvall official</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Mazvall official</div><div class="nav-links">
+API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Keys - Rest Api Mazz Vall</title>{style}</head><body>
+<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
 <a href="/">Dashboard</a>
 <a href="/items">Items</a>
 <a href="/api-keys" class="active">API Keys</a>
@@ -596,9 +613,10 @@ API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="
 <div class="container">
 <div class="page-title fade-in" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 <div><h1>API Keys</h1><p>Kelola API keys untuk akses REST API</p></div>
-<button class="btn btn-primary" onclick="openModal()">+ Generate Key</button>
+<button class="btn btn-primary" id="btn-open-modal">+ Generate Key</button>
 </div>
 <div class="card fade-in">
+<div style="background:#f0f0f0;padding:10px;border-radius:8px;border:2px solid #000;margin-bottom:12px;font-family:monospace;font-size:12px;"><strong>Base URL:</strong> https://valky-official.zone.id/api &nbsp;|&nbsp; Gunakan TOOL-xxx key atau MZval -Xxxx key</div>
 <div class="table-wrapper">
 <table>
 <thead><tr><th>API Key</th><th>User</th><th>Device</th><th>Expires</th><th>Status</th><th>Aksi</th></tr></thead>
@@ -621,8 +639,8 @@ API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="
 {% endif %}
 </td>
 <td style="white-space:nowrap;">
-<button class="btn btn-warning btn-sm" onclick="toggleKey('{{ k.key }}')">{{ 'Disable' if k.active else 'Enable' }}</button>
-<button class="btn btn-danger btn-sm" onclick="deleteKey('{{ k.key }}')">Hapus</button>
+<button class="btn btn-warning btn-sm btn-toggle-key" data-key="{{ k.key }}">{{ 'Disable' if k.active else 'Enable' }}</button>
+<button class="btn btn-danger btn-sm btn-delete-key" data-key="{{ k.key }}">Hapus</button>
 </td>
 </tr>
 {% endfor %}
@@ -634,7 +652,7 @@ API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="
 <div class="modal-overlay" id="modal">
 <div class="modal scale-in">
 <h2 style="margin-bottom:16px;">Generate API Key</h2>
-<form onsubmit="generateKey(event)">
+<form id="gen-key-form">
 <div class="form-group"><label>User / Nama</label><input type="text" id="key-user" required placeholder="Nama pemilik key"></div>
 <div class="form-group"><label>Durasi Expiry</label>
 <select id="key-duration">
@@ -650,23 +668,32 @@ API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="
 </select></div>
 <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
 <button type="submit" class="btn btn-primary">Generate</button>
-<button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
+<button type="button" class="btn btn-secondary" id="btn-close-modal">Batal</button>
 </div>
 </form>
 </div>
 </div>
-<p class="credit">&copy; Created Mazvall official Hak cipta</p>
+<p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
 <script>
-function openModal(){document.getElementById('modal').classList.add('active');}
-function closeModal(){document.getElementById('modal').classList.remove('active');}
-function generateKey(e){e.preventDefault();var user=document.getElementById('key-user').value;var duration=document.getElementById('key-duration').value;fetch('/api/keys/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:user,duration:duration})}).then(function(r){return r.json();}).then(function(d){if(d.status==='success')location.reload();else alert(d.message);});}
-function toggleKey(key){fetch('/api/keys/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key})}).then(function(r){return r.json();}).then(function(){location.reload();});}
-function deleteKey(key){if(confirm('Yakin hapus API key ini?')){fetch('/api/keys/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key})}).then(function(r){return r.json();}).then(function(){location.reload();});}}
+document.addEventListener('DOMContentLoaded', function(){
+document.getElementById('btn-open-modal').addEventListener('click',function(){document.getElementById('modal').classList.add('active');});
+document.getElementById('btn-close-modal').addEventListener('click',function(){document.getElementById('modal').classList.remove('active');});
+document.getElementById('gen-key-form').addEventListener('submit',function(e){
+e.preventDefault();var user=document.getElementById('key-user').value;var duration=document.getElementById('key-duration').value;
+fetch('/api/keys/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:user,duration:duration})}).then(function(r){return r.json();}).then(function(d){if(d.status==='success')location.reload();else alert(d.message);});
+});
+document.querySelectorAll('.btn-toggle-key').forEach(function(btn){
+btn.addEventListener('click',function(){fetch('/api/keys/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:this.dataset.key})}).then(function(r){return r.json();}).then(function(){location.reload();});});
+});
+document.querySelectorAll('.btn-delete-key').forEach(function(btn){
+btn.addEventListener('click',function(){if(confirm('Yakin hapus API key ini?')){fetch('/api/keys/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:this.dataset.key})}).then(function(r){return r.json();}).then(function(){location.reload();});}});
+});
+});
 </script>
 {script}</body></html>"""
 
-API_DOCS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Docs - Mazvall official</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Mazvall official</div><div class="nav-links">
+API_DOCS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Docs - Rest Api Mazz Vall</title>{style}</head><body>
+<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
 <a href="/">Dashboard</a>
 <a href="/items">Items</a>
 <a href="/api-keys">API Keys</a>
@@ -678,43 +705,64 @@ API_DOCS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="
 <div class="container">
 <div class="page-title fade-in"><h1>API Documentation</h1><p>Cara menggunakan REST API dengan API key</p></div>
 <div class="card fade-in"><h2>Autentikasi</h2><p style="color:#666;font-size:14px;margin-bottom:12px;">Semua request harus menyertakan API key di header:</p><pre>X-API-Key: MZval -Xxxxxxxxxxx</pre><p style="color:#666;font-size:13px;margin-top:10px;">API key terkunci ke 1 device.</p></div>
-<div class="card fade-in"><h2>Base URL</h2><pre id="base-url"></pre></div>
-<div class="card fade-in"><h2>Endpoints</h2>
+<div class="card fade-in"><h2>Base URL</h2><pre>https://valky-official.zone.id/api</pre><p style="color:#666;font-size:12px;margin-top:8px;">Gunakan TOOL-xxx key atau MZval -Xxxx key</p></div>
+<div class="card fade-in"><h2>Items Endpoints</h2>
 <div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/items</strong><p style="margin-top:8px;color:#666;">Ambil semua items</p></div>
 <div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/items/{id}</strong><p style="margin-top:8px;color:#666;">Ambil satu item</p></div>
 <div class="api-endpoint"><span class="api-method method-post">POST</span><strong>/api/items</strong><p style="margin-top:8px;color:#666;">Tambah item. Body: {"name":"...","price":0,"active":true}</p></div>
 <div class="api-endpoint"><span class="api-method method-put">PUT</span><strong>/api/items/{id}</strong><p style="margin-top:8px;color:#666;">Update item</p></div>
 <div class="api-endpoint"><span class="api-method method-delete">DELETE</span><strong>/api/items/{id}</strong><p style="margin-top:8px;color:#666;">Hapus item</p></div>
 </div>
+<div class="card fade-in"><h2>Tools Endpoints</h2>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/dailymotion?search=...&limit=10&sort=trending</strong><p style="margin-top:8px;color:#666;">Cari video Dailymotion</p></div>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/dailymotion/video/{id}</strong><p style="margin-top:8px;color:#666;">Detail video Dailymotion</p></div>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/bittv?type=EV</strong><p style="margin-top:8px;color:#666;">Bittv Events (EV/SP/ID/GB/US)</p></div>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/moviebox-global?page=1&perPage=10</strong><p style="margin-top:8px;color:#666;">MovieBox trending global</p></div>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/moviebox-horror?page=1&perPage=10</strong><p style="margin-top:8px;color:#666;">MovieBox horror Indonesia</p></div>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/tiktok?username=...</strong><p style="margin-top:8px;color:#666;">Profil TikTok</p></div>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/translate?text=...&to=en&from=auto</strong><p style="margin-top:8px;color:#666;">Terjemahkan teks</p></div>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/ssweb?url=...</strong><p style="margin-top:8px;color:#666;">Screenshot website</p></div>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/keyrafa/gempa?type=auto</strong><p style="margin-top:8px;color:#666;">Info gempa terkini</p></div>
+<div class="api-endpoint"><span class="api-method method-post">POST</span><strong>/api/alight/send</strong><p style="margin-top:8px;color:#666;">Kirim magic link Alight Motion. Body: {"email":"..."}</p></div>
+<div class="api-endpoint"><span class="api-method method-post">POST</span><strong>/api/alight/activate</strong><p style="margin-top:8px;color:#666;">Aktivasi premium Alight. Body: {"email":"...","link":"..."}</p></div>
+<div class="api-endpoint"><span class="api-method method-post">POST</span><strong>/api/external/keys/create</strong><p style="margin-top:8px;color:#666;">Buat TOOL-xxx key baru. Body: {"name":"..."}</p></div>
+<div class="api-endpoint"><span class="api-method method-get">GET</span><strong>/api/external/keys/list</strong><p style="margin-top:8px;color:#666;">List semua TOOL-xxx keys</p></div>
+</div>
 <div class="card fade-in">
 <h2>Test API</h2>
 <p style="margin-bottom:12px;color:#666;font-size:14px;">Masukkan API key untuk test</p>
-<div class="form-group"><label>API Key</label><input type="text" id="test-key" placeholder="MZval -X..."></div>
+<div class="form-group"><label>API Key</label><input type="text" id="test-key" placeholder="TOOL-xxx atau MZval -X..."></div>
 <div style="display:flex;gap:10px;flex-wrap:wrap;">
-<button class="btn btn-primary" onclick="testApi('GET','/api/items')">GET /items</button>
-<button class="btn btn-warning" onclick="testApi('POST','/api/items')">POST /items</button>
-<button class="btn btn-danger" onclick="testApi('DELETE','/api/items/test')">DELETE /items/test</button>
+<button class="btn btn-primary" id="btn-test-get">GET /items</button>
+<button class="btn btn-warning" id="btn-test-post">POST /items</button>
+<button class="btn btn-danger" id="btn-test-delete">DELETE /items/test</button>
+<button class="btn btn-secondary" id="btn-test-dm">GET /dailymotion</button>
 </div>
 <pre id="api-result" style="background:#1a1a2e;color:#4ECDC4;padding:16px;border-radius:10px;border:3px solid #000;margin-top:16px;font-size:12px;min-height:60px;display:none;white-space:pre-wrap;word-wrap:break-word;"></pre>
 </div>
 </div>
-<p class="credit">&copy; Created Mazvall official Hak cipta</p>
+<p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
 <script>
-document.getElementById('base-url').textContent=window.location.origin+'/api';
-function testApi(method,url){
+document.addEventListener('DOMContentLoaded', function(){
+function testApi(method,url,body){
 var result=document.getElementById('api-result');
 var apiKey=document.getElementById('test-key').value;
 if(!apiKey){result.style.display='block';result.textContent='Masukkan API key terlebih dahulu!';return;}
 result.style.display='block';result.textContent='Loading...';
 var opts={method:method,headers:{'Content-Type':'application/json','X-API-Key':apiKey}};
-if(method==='POST')opts.body=JSON.stringify({name:'Test Item',price:25000,active:true});
+if(body)opts.body=JSON.stringify(body);
 fetch(url,opts).then(function(r){return r.json();}).then(function(d){result.textContent=JSON.stringify(d,null,2);}).catch(function(e){result.textContent='Error: '+e.message;});
 }
+document.getElementById('btn-test-get').addEventListener('click',function(){testApi('GET','/api/items');});
+document.getElementById('btn-test-post').addEventListener('click',function(){testApi('POST','/api/items',{name:'Test Item',price:25000,active:true});});
+document.getElementById('btn-test-delete').addEventListener('click',function(){testApi('DELETE','/api/items/test');});
+document.getElementById('btn-test-dm').addEventListener('click',function(){testApi('GET','/api/dailymotion?limit=2');});
+});
 </script>
 {script}</body></html>"""
 
-USERS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Users - Mazvall official</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Mazvall official</div><div class="nav-links">
+USERS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Users - Rest Api Mazz Vall</title>{style}</head><body>
+<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
 <a href="/">Dashboard</a>
 <a href="/items">Items</a>
 <a href="/api-keys">API Keys</a>
@@ -726,7 +774,7 @@ USERS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <div class="container">
 <div class="page-title fade-in" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 <div><h1>User Management</h1><p>Kelola user dengan role: Harian, Mingguan, Bulanan, Permanen</p></div>
-<button class="btn btn-primary" onclick="openUserModal()">+ Create User</button>
+<button class="btn btn-primary" id="btn-create-user">+ Create User</button>
 </div>
 <div class="card fade-in">
 <div class="table-wrapper">
@@ -751,7 +799,7 @@ USERS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 {% endif %}
 </td>
 <td style="white-space:nowrap;">
-<button class="btn btn-danger btn-sm" onclick="deleteUser('{{ u.id }}')">Hapus</button>
+<button class="btn btn-danger btn-sm btn-delete-user" data-id="{{ u.id }}">Hapus</button>
 </td>
 </tr>
 {% endfor %}
@@ -763,7 +811,7 @@ USERS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <div class="modal-overlay" id="user-modal">
 <div class="modal scale-in">
 <h2 style="margin-bottom:16px;">Create User Account</h2>
-<form onsubmit="createUser(event)">
+<form id="create-user-form">
 <div class="form-group"><label>Username</label><input type="text" id="user-username" required placeholder="Nama user"></div>
 <div class="form-group"><label>Password</label><input type="text" id="user-password" required placeholder="Password"></div>
 <div class="form-group"><label>Role</label>
@@ -775,22 +823,29 @@ USERS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 </select></div>
 <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
 <button type="submit" class="btn btn-primary">Create</button>
-<button type="button" class="btn btn-secondary" onclick="closeUserModal()">Batal</button>
+<button type="button" class="btn btn-secondary" id="btn-close-user-modal">Batal</button>
 </div>
 </form>
 </div>
 </div>
-<p class="credit">&copy; Created Mazvall official Hak cipta</p>
+<p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
 <script>
-function openUserModal(){document.getElementById('user-modal').classList.add('active');}
-function closeUserModal(){document.getElementById('user-modal').classList.remove('active');}
-function createUser(e){e.preventDefault();var username=document.getElementById('user-username').value;var password=document.getElementById('user-password').value;var role=document.getElementById('user-role').value;fetch('/api/users/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:username,password:password,role:role})}).then(function(r){return r.json();}).then(function(d){if(d.status==='success')location.reload();else alert(d.message);});}
-function deleteUser(id){if(confirm('Yakin hapus user ini?')){fetch('/api/users/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}).then(function(r){return r.json();}).then(function(){location.reload();});}}
+document.addEventListener('DOMContentLoaded', function(){
+document.getElementById('btn-create-user').addEventListener('click',function(){document.getElementById('user-modal').classList.add('active');});
+document.getElementById('btn-close-user-modal').addEventListener('click',function(){document.getElementById('user-modal').classList.remove('active');});
+document.getElementById('create-user-form').addEventListener('submit',function(e){
+e.preventDefault();var username=document.getElementById('user-username').value;var password=document.getElementById('user-password').value;var role=document.getElementById('user-role').value;
+fetch('/api/users/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:username,password:password,role:role})}).then(function(r){return r.json();}).then(function(d){if(d.status==='success')location.reload();else alert(d.message);});
+});
+document.querySelectorAll('.btn-delete-user').forEach(function(btn){
+btn.addEventListener('click',function(){if(confirm('Yakin hapus user ini?')){fetch('/api/users/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:this.dataset.id})}).then(function(r){return r.json();}).then(function(){location.reload();});}});
+});
+});
 </script>
 {script}</body></html>"""
 
-TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Tools - Mazvall official</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Mazvall official</div><div class="nav-links">
+TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Tools - Rest Api Mazz Vall</title>{style}</head><body>
+<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
 <a href="/">Dashboard</a>
 <a href="/items">Items</a>
 <a href="/api-keys">API Keys</a>
@@ -800,7 +855,8 @@ TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <a href="/logout" style="background:#FF6B6B;">Logout</a>
 </div></nav>
 <div class="container">
-<div class="marquee"><marquee behavior="scroll" direction="left" scrollamount="5">&#9889; Welcome to Tools Center - Alight Motion Premium Real & Work - Dailymotion - Bittv - MovieBox - TikTok - Translator - Screenshot - Info Gempa</marquee></div>
+<div class="marquee"><marquee behavior="scroll" direction="left" scrollamount="5">&#9889; Welcome to Rest Api Mazz Vall - Alight Motion Premium - Dailymotion - Bittv - MovieBox - TikTok - Translator - Screenshot - Gempa</marquee></div>
+<div style="background:#f0f0f0;padding:10px;border-radius:8px;border:2px solid #000;margin-bottom:16px;text-align:center;font-family:monospace;font-size:13px;"><strong>Base API:</strong> <a href="https://valky-official.zone.id/api" target="_blank" style="color:#000;text-decoration:underline;">https://valky-official.zone.id/api</a></div>
 <div class="page-title visible"><h1>Tools Center</h1><p>Semua tools wajib API Key</p></div>
 <div class="card visible">
 <h2>API Key</h2>
@@ -856,7 +912,7 @@ TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <div id="tool-result" style="margin-top:10px;"></div>
 </div>
 </div>
-<p class="credit">&copy; Created Mazvall official Hak cipta</p>
+<p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
 var apiKey = localStorage.getItem('toolApiKey') || '';
@@ -1293,8 +1349,13 @@ def require_api_key():
     api_key = request.headers.get('X-API-Key')
     if not api_key:
         return None, jsonify({"status":"error","message":"X-API-Key header required"}), 401
+    if api_key.startswith('TOOL-'):
+        if validate_external_key(api_key):
+            return api_key, None, None
     valid, msg = validate_api_key(api_key, request)
     if not valid:
+        if validate_external_key(api_key):
+            return api_key, None, None
         return None, jsonify({"status":"error","message":msg}), 401
     return api_key, None, None
 
@@ -1515,10 +1576,10 @@ def api_alight_activate():
 # ============================================
 if __name__ == '__main__':
     print("=" * 50)
-    print("   Mazvall official - REST API Server")
+    print("   Rest Api Mazz Vall - REST API Server")
     print("   http://localhost:8086")
     print("   Login: mazvall / H0QwVE5ckXoGp2UU1Y7DA4idSbon4t2n")
-    print("   &copy; Created Mazvall official Hak cipta")
+    print("   &copy; Created Rest Api Mazz Vall Hak cipta")
     print("=" * 50)
     print(" User Roles: Harian, Mingguan, Bulanan, Permanen")
     print(" 1 akun = 1 device")
