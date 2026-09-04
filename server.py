@@ -886,7 +886,7 @@ function $(id){ return document.getElementById(id); }
 function showLoading(id){ $(id).innerHTML = '<div style="text-align:center;padding:20px;"><strong>Loading...</strong></div>'; }
 function showError(id,e){ $(id).innerHTML = '<p style="color:#FF6B6B;">Error: '+e+'</p>'; }
 function getHeaders(){ return {'X-API-Key':apiKey,'Content-Type':'application/json'}; }
-function noKey(){ if(!apiKey){ alert('Set API Key dulu!'); return true; } return false; }
+function noKey(){ if(!apiKey){ alert('API Key belum diset. Tunggu sebentar...'); return true; } return false; }
 
 function renderVideos(data,containerId){
 var c=$(containerId);var items=data.data||data.results||data.items||data.videos||[];
@@ -931,8 +931,6 @@ if(m.poster)h+='<img src="'+m.poster+'" alt="" onerror="this.remove()" style="wi
 h+='<h3>'+(m.title||'').substring(0,50)+'</h3>';
 if(m.year)h+='<div class="link">'+m.year+'</div>';
 if(m.imdbRating)h+='<div class="link">IMDb: '+m.imdbRating+'</div>';
-h+='</div>';}
-h+='</div>';c.innerHTML=h;}
 h+='</div>';}
 h+='</div>';c.innerHTML=h;}
 
