@@ -1192,7 +1192,6 @@ if(apiKey){
 } else {
   $('key-status').innerHTML='<span style="color:#FFD60A;font-weight:700;">Masukkan API Key dari Admin</span>';
 }
-});
 
 if($('btn-nft-generate')) $('btn-nft-generate').addEventListener('click', function(){
 if(noKey())return;
