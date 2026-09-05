@@ -407,20 +407,32 @@ BASE_STYLE = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;}
+body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;margin:0;}
+.sidebar{position:fixed;top:0;left:0;width:260px;height:100%;background:#1a1a2e;border-right:4px solid #000;z-index:200;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:0;}
+.sidebar.open{transform:translateX(0);}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:199;}
+.sidebar-overlay.active{display:block;}
+.sidebar-header{background:#FFD60A;padding:20px;border-bottom:4px solid #000;display:flex;align-items:center;justify-content:space-between;}
+.sidebar-header h2{font-size:16px;font-weight:800;margin:0;color:#000;}
+.sidebar-close{background:none;border:none;font-size:24px;cursor:pointer;font-weight:800;color:#000;}
+.sidebar-nav{padding:12px 0;}
+.sidebar-nav a{display:flex;align-items:center;gap:12px;padding:14px 20px;color:#ccc;text-decoration:none;font-weight:600;font-size:14px;border-bottom:2px solid #2a2a3e;transition:all .2s;}
+.sidebar-nav a:hover{background:#2a2a3e;color:#FFD60A;padding-left:28px;}
+.sidebar-nav a.active{background:#4ECDC4;color:#000;border-left:4px solid #FFD60A;}
+.sidebar-nav a .icon{font-size:18px;width:24px;text-align:center;}
+.sidebar-section{padding:8px 20px;font-size:11px;color:#666;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-top:8px;}
+.menu-toggle{position:fixed;top:20px;left:20px;z-index:150;background:#FFD60A;border:3px solid #000;border-radius:12px;padding:10px 14px;cursor:pointer;font-size:20px;box-shadow:4px 4px 0 #000;transition:all .15s;}
+.menu-toggle:hover{box-shadow:6px 6px 0 #000;transform:translate(-2px,-2px);}
+.main-content{margin-left:0;transition:margin-left .35s cubic-bezier(.4,0,.2,1);}
+.main-content.shifted{margin-left:260px;}
 .fade-in{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease;}
 .fade-in.visible{opacity:1;transform:translateY(0);}
 .scale-in{opacity:0;transform:scale(.9);transition:opacity .5s ease,transform .5s ease;}
 .scale-in.visible{opacity:1;transform:scale(1);}
 .credit{text-align:center;padding:20px;font-size:12px;color:#888;border-top:3px solid #000;background:#fff;margin-top:30px;border-radius:0 0 16px 16px;}
 .credit span{font-weight:700;color:#000;}
-.navbar{display:flex;justify-content:space-between;align-items:center;background:#FFD60A;border:4px solid #000;border-radius:16px;padding:16px 24px;box-shadow:6px 6px 0 #000;margin:20px;flex-wrap:wrap;}
-.navbar .logo{font-weight:800;font-size:20px;}
-.navbar .nav-links{display:flex;gap:8px;flex-wrap:wrap;}
-.navbar .nav-links a{text-decoration:none;color:#000;font-weight:600;padding:8px 14px;border:3px solid #000;border-radius:10px;background:#fff;transition:all .15s;font-size:13px;}
-.navbar .nav-links a:hover{box-shadow:4px 4px 0 #000;transform:translate(-2px,-2px);}
-.navbar .nav-links a.active{background:#4ECDC4;}
-.container{max-width:1100px;margin:0 auto;padding:0 20px;}
+.navbar{display:none;}
+.container{max-width:1100px;margin:0 auto;padding:0 20px;padding-top:70px;}
 .card{background:#fff;border:4px solid #000;border-radius:16px;padding:30px;box-shadow:6px 6px 0 #000;margin-bottom:24px;overflow:hidden;}
 .card h2{font-size:20px;margin-bottom:16px;}
 .btn{font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 18px;border:3px solid #000;border-radius:10px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
@@ -465,10 +477,12 @@ pre{background:#1a1a2e;color:#4ECDC4;padding:16px;border-radius:10px;border:3px 
 .method-post{background:#FFD60A;}
 .method-put{background:#C8B6FF;}
 .method-delete{background:#FF6B6B;}
+.online-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;border:2px solid #000;}
+.online-dot.on{background:#4ECDC4;}
+.online-dot.off{background:#FF6B6B;}
 @media(max-width:600px){
-.navbar{flex-direction:column;gap:10px;}
-.navbar .logo{font-size:16px;}
-.navbar .nav-links a{padding:6px 10px;font-size:12px;}
+.sidebar{width:100%;}
+.container{padding-top:80px;}
 .stats{grid-template-columns:1fr 1fr;}
 .card{padding:20px;}
 table{min-width:400px;}
@@ -482,9 +496,43 @@ SCROLL_JS = """
 document.addEventListener('DOMContentLoaded',function(){
 var o=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible');});},{threshold:.1});
 document.querySelectorAll('.fade-in,.scale-in').forEach(function(el){o.observe(el);});
+var toggle=document.querySelector('.menu-toggle');
+var sidebar=document.querySelector('.sidebar');
+var overlay=document.querySelector('.sidebar-overlay');
+if(toggle&&sidebar){toggle.addEventListener('click',function(){sidebar.classList.add('open');if(overlay)overlay.classList.add('active');});}
+if(overlay){overlay.addEventListener('click',function(){sidebar.classList.remove('open');overlay.classList.remove('active');});}
+if(sidebar){sidebar.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){sidebar.classList.remove('open');if(overlay)overlay.classList.remove('active');});});}
 });
 </script>
 """
+
+def SIDEBAR_HTML(active_page="", is_admin=False):
+    admin_links = ""
+    if is_admin:
+        admin_links = """
+        <div class="sidebar-section">Admin</div>
+        <a href="/"><span class="icon">&#9733;</span> Dashboard</a>
+        <a href="/items"><span class="icon">&#9998;</span> Items</a>
+        <a href="/api-keys"><span class="icon">&#128273;</span> API Keys</a>
+        <a href="/users"><span class="icon">&#9786;</span> Users</a>
+        <a href="/settings"><span class="icon">&#9881;</span> Settings</a>
+        <a href="/user-monitor"><span class="icon">&#9881;</span> User Monitor</a>
+        """
+    return f"""
+    <div class="menu-toggle" id="menu-toggle">&#9776;</div>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header"><h2>Rest Api Mazz Vall</h2></div>
+        <div class="sidebar-nav">
+            {admin_links}
+            <div class="sidebar-section">Tools</div>
+            <a href="/tools" class="{'active' if active_page=='tools' else ''}"><span class="icon">&#128295;</span> Tools Center</a>
+            <a href="/api/docs" class="{'active' if active_page=='docs' else ''}"><span class="icon">&#128196;</span> API Docs</a>
+            <div class="sidebar-section">Account</div>
+            <a href="/logout" style="color:#FF6B6B;"><span class="icon">&#10140;</span> Logout</a>
+        </div>
+    </div>
+    """
 
 LOGIN_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Login - Rest Api Mazz Vall</title>
 <style>
@@ -520,15 +568,8 @@ body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;display:
 </div></div></body></html>"""
 
 DASHBOARD_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Dashboard - Rest Api Mazz Vall</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
-<a href="/" class="active">Dashboard</a>
-<a href="/items">Items</a>
-<a href="/api-keys">API Keys</a>
-<a href="/api/docs">Docs</a>
-<a href="/users">Users</a>
-<a href="/tools">Tools</a>
-<a href="/logout" style="background:#FF6B6B;">Logout</a>
-</div></nav>
+{sidebar}
+<div class="main-content">
 <div class="container">
 <div class="page-title fade-in"><h1>Dashboard</h1><p>Selamat datang, {{ user }}!</p></div>
 <div class="stats">
@@ -552,18 +593,11 @@ DASHBOARD_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name=
 </div>
 </div>
 <p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
-{script}</body></html>"""
+</div>{script}</body></html>"""
 
 ITEMS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Items - Rest Api Mazz Vall</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
-<a href="/">Dashboard</a>
-<a href="/items" class="active">Items</a>
-<a href="/api-keys">API Keys</a>
-<a href="/api/docs">Docs</a>
-<a href="/users">Users</a>
-<a href="/tools">Tools</a>
-<a href="/logout" style="background:#FF6B6B;">Logout</a>
-</div></nav>
+{sidebar}
+<div class="main-content">
 <div class="container">
 <div class="page-title fade-in" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 <div><h1>Items</h1><p>Kelola data items Anda</p></div>
@@ -607,6 +641,7 @@ ITEMS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 </div>
 </div>
 <p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
+</div>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
 document.getElementById('btn-add-item').addEventListener('click',function(){
@@ -631,15 +666,8 @@ e.preventDefault();var id=document.getElementById('edit-id').value;var data={nam
 {script}</body></html>"""
 
 API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Keys - Rest Api Mazz Vall</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
-<a href="/">Dashboard</a>
-<a href="/items">Items</a>
-<a href="/api-keys" class="active">API Keys</a>
-<a href="/api/docs">Docs</a>
-<a href="/users">Users</a>
-<a href="/tools">Tools</a>
-<a href="/logout" style="background:#FF6B6B;">Logout</a>
-</div></nav>
+{sidebar}
+<div class="main-content">
 <div class="container">
 <div class="page-title fade-in" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 <div><h1>API Keys</h1><p>Kelola API keys untuk akses REST API</p></div>
@@ -704,9 +732,8 @@ API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="
 </div>
 </div>
 <p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
+</div>
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-document.getElementById('btn-open-modal').addEventListener('click',function(){document.getElementById('modal').classList.add('active');});
 document.getElementById('btn-close-modal').addEventListener('click',function(){document.getElementById('modal').classList.remove('active');});
 document.getElementById('gen-key-form').addEventListener('submit',function(e){
 e.preventDefault();var user=document.getElementById('key-user').value;var duration=document.getElementById('key-duration').value;
@@ -723,15 +750,8 @@ btn.addEventListener('click',function(){if(confirm('Yakin hapus API key ini?')){
 {script}</body></html>"""
 
 API_DOCS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Docs - Rest Api Mazz Vall</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
-<a href="/">Dashboard</a>
-<a href="/items">Items</a>
-<a href="/api-keys">API Keys</a>
-<a href="/api/docs" class="active">Docs</a>
-<a href="/users">Users</a>
-<a href="/tools">Tools</a>
-<a href="/logout" style="background:#FF6B6B;">Logout</a>
-</div></nav>
+{sidebar}
+<div class="main-content">
 <div class="container">
 <div class="page-title fade-in"><h1>API Documentation</h1><p>Cara menggunakan REST API dengan API key</p></div>
 <div class="card fade-in"><h2>Autentikasi</h2><p style="color:#666;font-size:14px;margin-bottom:12px;">Semua request harus menyertakan API key di header:</p><pre>X-API-Key: MZval -Xxxxxxxxxxx</pre><p style="color:#666;font-size:13px;margin-top:10px;">API key terkunci ke 1 device.</p></div>
@@ -792,15 +812,8 @@ document.getElementById('btn-test-dm').addEventListener('click',function(){testA
 {script}</body></html>"""
 
 USERS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Users - Rest Api Mazz Vall</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
-<a href="/">Dashboard</a>
-<a href="/items">Items</a>
-<a href="/api-keys">API Keys</a>
-<a href="/api/docs">Docs</a>
-<a href="/users" class="active">Users</a>
-<a href="/tools">Tools</a>
-<a href="/logout" style="background:#FF6B6B;">Logout</a>
-</div></nav>
+{sidebar}
+<div class="main-content">
 <div class="container">
 <div class="page-title fade-in" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 <div><h1>User Management</h1><p>Kelola user dengan role: Harian, Mingguan, Bulanan, Permanen</p></div>
@@ -875,17 +888,10 @@ btn.addEventListener('click',function(){if(confirm('Yakin hapus user ini?')){fet
 {script}</body></html>"""
 
 TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Tools - Rest Api Mazz Vall</title>{style}</head><body>
-<nav class="navbar"><div class="logo">&#9889; Rest Api Mazz Vall</div><div class="nav-links">
-<a href="/">Dashboard</a>
-<a href="/items">Items</a>
-<a href="/api-keys">API Keys</a>
-<a href="/api/docs">Docs</a>
-<a href="/users">Users</a>
-<a href="/tools" class="active">Tools</a>
-<a href="/logout" style="background:#FF6B6B;">Logout</a>
-</div></nav>
+{sidebar}
+<div class="main-content">
 <div class="container">
-<div class="marquee"><marquee behavior="scroll" direction="left" scrollamount="5">&#9889; Welcome to Rest Api Mazz Vall - Alight Motion Premium - Dailymotion - Bittv - MovieBox - TikTok - Translator - Screenshot - Gempa</marquee></div>
+<div class="marquee"><marquee behavior="scroll" direction="left" scrollamount="5">&#9889; Welcome to Rest Api Mazz Vall - Alight Motion Premium - Dailymotion - Bittv - MovieBox - TikTok - Translator - Screenshot - Gempa - Netflix Token</marquee></div>
 <div style="background:#f0f0f0;padding:10px;border-radius:8px;border:2px solid #000;margin-bottom:16px;text-align:center;font-family:monospace;font-size:13px;"><strong>Base API:</strong> <a href="https://valky-official.zone.id/api" target="_blank" style="color:#000;text-decoration:underline;">https://valky-official.zone.id/api</a></div>
 <div class="page-title visible"><h1>Tools Center</h1><p>Semua tools wajib API Key</p></div>
 <div class="card visible">
@@ -958,6 +964,8 @@ TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <script>
 document.addEventListener('DOMContentLoaded', function(){
 var apiKey = localStorage.getItem('toolApiKey') || '';
+fetch('/api/user/heartbeat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:apiKey||'guest'})});
+setInterval(function(){fetch('/api/user/heartbeat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:apiKey||'guest'})});},30000);
 
 function $(id){ return document.getElementById(id); }
 function showLoading(id){ $(id).innerHTML = '<div style="text-align:center;padding:20px;"><strong>Loading...</strong></div>'; }
@@ -1259,7 +1267,7 @@ def dashboard():
     active = sum(1 for k in keys if k.get('active') and datetime.fromisoformat(k['expires_at']) > now)
     expired = sum(1 for k in keys if k.get('active') and datetime.fromisoformat(k['expires_at']) <= now)
     return render_template_string(
-        DASHBOARD_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS),
+        DASHBOARD_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS).replace('{sidebar}', SIDEBAR_HTML('dashboard', True)),
         user=session['user'], total_items=len(items), total_keys=len(keys), active_keys=active, expired_keys=expired, total_users=len(users)
     )
 
@@ -1268,7 +1276,7 @@ def dashboard():
 def items_page():
     data = load_db()
     return render_template_string(
-        ITEMS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS),
+        ITEMS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS).replace('{sidebar}', SIDEBAR_HTML('items', True)),
         items=data.get('items', [])
     )
 
@@ -1281,7 +1289,7 @@ def api_keys_page():
     for k in keys:
         k['expired'] = datetime.fromisoformat(k['expires_at']) <= now
     return render_template_string(
-        API_KEYS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS),
+        API_KEYS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS).replace('{sidebar}', SIDEBAR_HTML('api-keys', True)),
         keys=keys
     )
 
@@ -1289,7 +1297,7 @@ def api_keys_page():
 @login_required
 def api_docs():
     return render_template_string(
-        API_DOCS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS)
+        API_DOCS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS).replace('{sidebar}', SIDEBAR_HTML('docs', False))
     )
 
 @app.route('/users')
@@ -1302,7 +1310,7 @@ def users_page():
         if u.get('expired_at'):
             u['expired'] = datetime.fromisoformat(u['expired_at']) <= now
     return render_template_string(
-        USERS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS),
+        USERS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS).replace('{sidebar}', SIDEBAR_HTML('users', True)),
         users=users
     )
 
@@ -1311,30 +1319,36 @@ def users_page():
 def settings_page():
     db = load_db()
     settings = db.get("settings", {})
+    sidebar = SIDEBAR_HTML('settings', True)
+    mk = settings.get('max_keys_per_day', 10)
+    kd = settings.get('key_duration_days', 30)
+    nm = settings.get('nft_max_per_request', 5)
+    nd = settings.get('nft_daily_limit', 20)
     return render_template_string("""
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Settings - Admin</title>
-<style>{style}</style></head><body>
-<nav><div class="nav-inner"><a href="/" class="logo">Rest Api Mazz Vall</a>
-<div class="nav-links"><a href="/">Dashboard</a><a href="/items">Items</a><a href="/api-keys">API Keys</a><a href="/users">Users</a><a href="/settings" class="active">Settings</a><a href="/tools">Tools</a><a href="/logout" style="background:#FF6B6B;">Logout</a></div></div></nav>
+<style>""" + BASE_STYLE + """</style></head><body>
+""" + sidebar + """
+<div class="main-content">
 <div class="container">
 <div class="page-title visible"><h1>Admin Settings</h1><p>Konfigurasi rate limit dan batasan</p></div>
 <div class="card visible">
 <h2>Rate Limits</h2>
 <div style="display:grid;gap:16px;margin-top:16px;">
 <div><label style="font-weight:700;display:block;margin-bottom:4px;">Max API Keys per Hari</label>
-<input type="number" id="max-keys" value="%%MAX_KEYS%%" style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
+<input type="number" id="max-keys" value=""" + str(mk) + """ style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
 <div><label style="font-weight:700;display:block;margin-bottom:4px;">Key Duration (hari)</label>
-<input type="number" id="key-duration" value="%%KEY_DURATION%%" style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
+<input type="number" id="key-duration" value=""" + str(kd) + """ style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
 <div><label style="font-weight:700;display:block;margin-bottom:4px;">Max NFToken per Request</label>
-<input type="number" id="nft-max" value="%%NFT_MAX%%" style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
+<input type="number" id="nft-max" value=""" + str(nm) + """ style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
 <div><label style="font-weight:700;display:block;margin-bottom:4px;">NFToken Daily Limit</label>
-<input type="number" id="nft-daily" value="%%NFT_DAILY%%" style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
+<input type="number" id="nft-daily" value=""" + str(nd) + """ style="width:100%;padding:10px;border:2px solid #000;border-radius:8px;"></div>
 </div>
 <button class="btn btn-primary" id="btn-save-settings" style="margin-top:16px;">Save Settings</button>
 <div id="settings-status" style="margin-top:10px;"></div>
 </div>
 </div>
 <p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
+</div>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
 document.getElementById('btn-save-settings').addEventListener('click', function(){
@@ -1354,17 +1368,12 @@ document.getElementById('settings-status').innerHTML = d.status==='success' ?
 .catch(function(e){document.getElementById('settings-status').innerHTML='<span style="color:#FF6B6B;">Error: '+e.message+'</span>';});
 });
 });
-</script></body></html>""",
-        MAX_KEYS=settings.get("max_keys_per_day", 10),
-        KEY_DURATION=settings.get("key_duration_days", 30),
-        NFT_MAX=settings.get("nft_max_per_request", 5),
-        NFT_DAILY=settings.get("nft_daily_limit", 20)
-    )
+</script></body></html>""")
 
 @app.route('/tools')
 def tools_page():
     return render_template_string(
-        TOOLS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS)
+        TOOLS_PAGE.replace('{style}', BASE_STYLE).replace('{script}', SCROLL_JS).replace('{sidebar}', SIDEBAR_HTML('tools', False))
     )
 
 # ============================================
@@ -1423,6 +1432,86 @@ def api_delete_user():
             save_db(db)
             return jsonify({"status": "success", "message": f"User {removed['username']} deleted"})
     return jsonify({"status": "error", "message": "User not found"}), 404
+
+# ============================================
+# USER ONLINE MONITORING
+# ============================================
+_user_activity = {}
+
+@app.route('/api/user/heartbeat', methods=['POST'])
+def user_heartbeat():
+    data = request.get_json() or {}
+    username = data.get('username') or session.get('user', 'anonymous')
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    ua = request.headers.get('User-Agent', '')[:50]
+    _user_activity[username] = {
+        'last_seen': datetime.now().isoformat(),
+        'ip': ip,
+        'ua': ua,
+        'online': True
+    }
+    return jsonify({"status": "ok"})
+
+@app.route('/api/admin/users/status', methods=['GET'])
+@admin_required
+def get_users_status():
+    now = datetime.now()
+    statuses = []
+    for username, activity in _user_activity.items():
+        last_seen = datetime.fromisoformat(activity['last_seen'])
+        diff = (now - last_seen).total_seconds()
+        online = diff < 60
+        statuses.append({
+            'username': username,
+            'online': online,
+            'last_seen': activity['last_seen'],
+            'ip': activity['ip'],
+            'ua': activity['ua'],
+            'seconds_ago': int(diff)
+        })
+    return jsonify({"status": "success", "users": statuses})
+
+@app.route('/user-monitor')
+@admin_required
+def user_monitor_page():
+    sidebar = SIDEBAR_HTML('user-monitor', True)
+    return render_template_string("""
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>User Monitor - Admin</title>
+<style>""" + BASE_STYLE + """</style></head><body>
+""" + sidebar + """
+<div class="main-content">
+<div class="container">
+<div class="page-title visible"><h1>User Monitor</h1><p>Monitor user online/offline secara real-time</p></div>
+<div class="card visible">
+<h2>Online Users</h2>
+<div id="monitor-list" style="margin-top:12px;">Loading...</div>
+<button class="btn btn-primary" id="btn-refresh" style="margin-top:12px;">Refresh</button>
+</div>
+</div>
+<p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+function loadStatus(){
+fetch('/api/admin/users/status').then(function(r){return r.json();}).then(function(d){
+var c=document.getElementById('monitor-list');
+if(!d.users||d.users.length===0){c.innerHTML='<p style="color:#666;">No activity yet</p>';return;}
+var h='<table><thead><tr><th>User</th><th>Status</th><th>IP</th><th>Last Seen</th><th>Browser</th></tr></thead><tbody>';
+d.users.forEach(function(u){
+h+='<tr><td><strong>'+u.username+'</strong></td>';
+h+='<td><span class="online-dot '+(u.online?'on':'off')+'"></span>'+(u.online?'Online':'Offline')+'</td>';
+h+='<td style="font-size:12px;">'+u.ip+'</td>';
+h+='<td style="font-size:12px;">'+u.seconds_ago+'s ago</td>';
+h+='<td style="font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;">'+u.ua+'</td></tr>';
+});
+h+='</tbody></table>';c.innerHTML=h;
+}).catch(function(e){document.getElementById('monitor-list').innerHTML='<p style="color:red;">Error: '+e.message+'</p>';});
+}
+loadStatus();
+document.getElementById('btn-refresh').addEventListener('click',loadStatus);
+setInterval(loadStatus,10000);
+});
+</script></body></html>""")
 
 # ============================================
 # API KEY MANAGEMENT
