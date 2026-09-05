@@ -198,7 +198,46 @@ class KeyrafaAPI:
         return self._request("/tools/translate", {"text": text, "to": to, "from": from_lang})
 
     def tiktok(self, username):
-        return self._request("/social/tiktok", {"username": username})
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 12; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Referer': 'https://www.google.com/',
+            }
+            r = requests.get(f'https://www.tiktok.com/@{username}', headers=headers, timeout=15, allow_redirects=True)
+            import json, re
+            if '__UNIVERSAL_DATA_FOR_REHYDRATION__' in r.text:
+                m = re.search(r'<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">(.*?)</script>', r.text)
+                if m:
+                    d = json.loads(m.group(1))
+                    scope = d.get('__DEFAULT_SCOPE__', {})
+                    ud = scope.get('webapp.user-detail', {}).get('userInfo', {})
+                    user = ud.get('user', {})
+                    stats = ud.get('stats', {})
+                    return {
+                        "result": {
+                            "nickname": user.get('nickname', ''),
+                            "username": user.get('uniqueId', username),
+                            "signature": user.get('signature', ''),
+                            "avatar": user.get('avatarThumb', ''),
+                            "verified": user.get('verified', False),
+                            "followers": stats.get('followerCount', 0),
+                            "following": stats.get('followingCount', 0),
+                            "hearts": stats.get('heartCount', 0),
+                            "videos": stats.get('videoCount', 0),
+                            "digg": stats.get('diggCount', 0),
+                        },
+                        "status": True,
+                        "author": "MazVall Api'S"
+                    }
+            r2 = requests.get(f'https://www.tiktok.com/oembed?url=https://www.tiktok.com/@{username}', timeout=10)
+            if r2.status_code == 200:
+                o = r2.json()
+                return {"result": {"nickname": o.get('author_name', username), "username": username, "signature": o.get('title', ''), "avatar": o.get('thumbnail_url', '')}, "status": True, "author": "MazVall Api'S"}
+            return {"result": {"error": "User not found"}, "status": False}
+        except Exception as e:
+            return {"result": {"error": str(e)}, "status": False}
 
     def moviebox_horror(self, page=1, per_page=20):
         return self._request("/film/moviebox-horror", {"page": page, "perPage": per_page})
@@ -252,68 +291,59 @@ class AlightDapji:
 # ============================================
 class NFTokenGenerator:
     def __init__(self):
-        self.base = "https://nftools.aroshi.my.id"
-        self.ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Mobile Safari/537.36"
+        self.ua = "Argo/15.48.1 (iPhone; iOS 15.8.5; Scale/2.00)"
         self.timeout = 30
+        self.esn = "NFAPPL-02-IPHONE8%3D1-PXA-02026U9VV5O8AUKEAEO8PUJETCGDD4PQRI9DEB3MDLEMD0EACM4CS78LMD334MN3MQ3NMJ8SU9O9MVGS6BJCURM1PH1MUTGDPF4S4200"
 
-    def _sha256(self, text):
-        return hashlib.sha256(text.encode()).hexdigest()
-
-    def _solve_pow(self, challenge):
-        for n in range(2000000):
-            if self._sha256(challenge + str(n)).startswith("0000"):
-                return f"{challenge}:{n}"
-        return None
-
-    def _get_session(self):
+    def generate_token(self, cookie_str):
         try:
-            r = requests.post(f"{self.base}/api/session", json={}, timeout=self.timeout, headers={
-                "Content-Type": "application/json",
+            cookies = {}
+            for part in cookie_str.split(';'):
+                part = part.strip()
+                if '=' in part:
+                    k, v = part.split('=', 1)
+                    cookies[k.strip()] = v.strip()
+            if 'NetflixId' not in cookies and 'netflixId' not in cookies:
+                return {"ok": False, "error": "Cookie must contain NetflixId"}
+            headers = {
                 "User-Agent": self.ua,
-                "Origin": self.base,
-                "Referer": f"{self.base}/nftoken"
-            })
-            data = r.json()
-            if data.get("success"):
-                return {"ok": True, "token": data.get("token")}
-            return {"ok": False, "message": data.get("error", "Session failed - Cloudflare protection active")}
+                "x-netflix.request.attempt": "1",
+                "x-netflix.context.app-version": "15.48.1",
+                "x-netflix.client.appversion": "15.48.1",
+                "x-netflix.client.type": "argo",
+                "x-netflix.client.ftl.esn": self.esn,
+                "x-netflix.context.locales": "en-US",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+            import uuid
+            payload = {
+                "paths": [["account", "token", "default"]],
+                "params": {
+                    "pathFormat": "graph",
+                    "responseFormat": "json"
+                }
+            }
+            r = requests.post(
+                "https://api.netflix.com/xmatch/sherlock",
+                json=payload,
+                headers=headers,
+                cookies=cookies,
+                timeout=self.timeout
+            )
+            if r.status_code == 200:
+                data = r.json()
+                token = data.get("token") or data.get("data", {}).get("token")
+                if token:
+                    return {"ok": True, "nftoken": token, "url": f"https://www.netflix.com/login?nftoken={token}"}
+            r2 = requests.get(
+                "https://www.netflix.com/api/msl/cadmium/user/15.48.0/account/ijpprogenie/evaluate",
+                headers={**headers, "Cookie": cookie_str},
+                timeout=self.timeout
+            )
+            return {"ok": False, "error": "NFToken generation requires valid Netflix session cookies. Use browser extension to export cookies.", "hint": "Paste full cookie string including NetflixId"}
         except Exception as e:
-            return {"ok": False, "message": f"Connection error: {str(e)}"}
-
-    def _generate_one(self, plan):
-        try:
-            session = self._get_session()
-            if not session.get("ok"):
-                return {"success": False, "error": session.get("message", "Session failed")}
-            token = session["token"]
-            headers = {"Content-Type": "application/json", "X-NFToken-Session": token, "User-Agent": self.ua, "Origin": self.base, "Referer": f"{self.base}/nftoken"}
-            r1 = requests.post(f"{self.base}/api/random", json={"plan": plan}, headers=headers, timeout=self.timeout)
-            d1 = r1.json()
-            if d1.get("powChallenge"):
-                proof = self._solve_pow(d1["powChallenge"])
-                if not proof:
-                    return {"success": False, "error": "PoW solve failed"}
-                headers["X-PoW-Proof"] = proof
-                r2 = requests.post(f"{self.base}/api/random", json={"plan": plan}, headers=headers, timeout=self.timeout)
-                d2 = r2.json()
-                if d2.get("success") and d2.get("url"):
-                    return {"success": True, "plan": d2.get("plan", plan), "quality": d2.get("quality", "—"), "country": d2.get("country", "Unknown"), "url": d2["url"], "expires": d2.get("expires")}
-                return {"success": False, "error": d2.get("error", "Generation failed")}
-            if d1.get("success") and d1.get("url"):
-                return {"success": True, "plan": d1.get("plan", plan), "quality": d1.get("quality", "—"), "country": d1.get("country", "Unknown"), "url": d1["url"], "expires": d1.get("expires")}
-            return {"success": False, "error": d1.get("error", "Unknown error")}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
-    def generate(self, plan="premium", count=1):
-        results = []
-        for i in range(min(count, 5)):
-            r = self._generate_one(plan)
-            if r.get("success"):
-                results.append(r)
-            if i < count - 1:
-                time.sleep(2)
-        return {"ok": len(results) > 0, "results": results, "total": len(results), "requested": count}
+            return {"ok": False, "error": str(e)}
 
 # ============================================
 # INISIALISASI API
@@ -969,12 +999,9 @@ TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="vie
 <div id="tool-result" style="margin-top:10px;"></div>
 </div>
 <div class="card visible"><h2>Netflix Token Generator</h2>
-<p style="color:#666;font-size:14px;margin-bottom:12px;">Generate Netflix premium token links</p>
-<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-<select id="nft-plan"><option value="premium">Premium</option><option value="standard">Standard</option><option value="basic">Basic</option></select>
-<select id="nft-count"><option value="1">1 Link</option><option value="3">3 Links</option><option value="5">5 Links</option></select>
+<p style="color:#666;font-size:14px;margin-bottom:12px;">Generate Netflix NFToken from your session cookies</p>
+<textarea id="nft-cookie" rows="3" placeholder="Paste Netflix cookie string (must include NetflixId)..." style="font-size:12px;"></textarea>
 <button class="btn btn-primary" id="btn-nft-generate">Generate Token</button>
-</div>
 <div id="nft-result" style="margin-top:10px;"></div>
 </div>
 </div>
@@ -1121,9 +1148,13 @@ var h='<div class="card visible" style="margin-top:10px;">';
 if(u.avatar)h+='<img src="'+u.avatar+'" style="width:80px;height:80px;border-radius:50%;border:3px solid #000;object-fit:cover;">';
 h+='<h3 style="margin:8px 0;">'+(u.nickname||u.username||username)+'</h3>';
 if(u.signature)h+='<p style="color:#666;font-size:13px;">'+u.signature+'</p>';
-if(u.followerCount!==undefined)h+='<div><strong>Followers:</strong> '+u.followerCount.toLocaleString()+'</div>';
-if(u.heartCount!==undefined)h+='<div><strong>Likes:</strong> '+u.heartCount.toLocaleString()+'</div>';
-if(u.videoCount!==undefined)h+='<div><strong>Videos:</strong> '+u.videoCount.toLocaleString()+'</div>';
+var fc=u.followers||u.followerCount||0;
+var hc=u.hearts||u.heartCount||0;
+var vc=u.videos||u.videoCount||0;
+if(fc)h+='<div><strong>Followers:</strong> '+fc.toLocaleString()+'</div>';
+if(hc)h+='<div><strong>Likes:</strong> '+hc.toLocaleString()+'</div>';
+if(vc)h+='<div><strong>Videos:</strong> '+vc.toLocaleString()+'</div>';
+if(u.verified)h+='<div class="badge badge-blue">Verified</div>';
 h+='</div>';c.innerHTML=h;
 })
 .catch(function(e){showError('tool-result',e.message);});
@@ -1213,31 +1244,23 @@ if(apiKey){
 
 if($('btn-nft-generate')) $('btn-nft-generate').addEventListener('click', function(){
 if(noKey())return;
-var plan=$('nft-plan').value;
-var count=$('nft-count').value;
+var cookie=$('nft-cookie').value.trim();
+if(!cookie){alert('Paste Netflix cookies!');return;}
 var btn=this; btn.disabled=true; btn.textContent='Generating...';
 showLoading('nft-result');
-fetch('/api/nftoken/generate',{method:'POST',headers:getHeaders(),body:JSON.stringify({plan:plan,count:parseInt(count)})})
+fetch('/api/nftoken/generate',{method:'POST',headers:{...getHeaders(),'Content-Type':'application/json'},body:JSON.stringify({cookie:cookie})})
 .then(function(r){return r.json();})
 .then(function(d){
+btn.disabled=false; btn.textContent='Generate Token';
 var c=$('nft-result');
-if(d.ok&&d.results&&d.results.length>0){
-var h='<div style="background:#CAFFBF;padding:16px;border:3px solid #000;border-radius:10px;">';
-h+='<h3>Netflix Token Generated! ('+d.results.length+' links)</h3>';
-d.results.forEach(function(r,i){
-h+='<div style="margin:10px 0;padding:10px;background:#fff;border:2px solid #000;border-radius:8px;">';
-h+='<strong>Link '+(i+1)+'</strong> — '+(r.country||'Unknown')+'<br>';
-h+='<div style="font-size:12px;color:#666;">Plan: '+(r.plan||plan)+' | Quality: '+(r.quality||'—')+'</div>';
-h+='<a href="'+r.url+'" target="_blank" style="color:#000;font-weight:700;word-break:break-all;display:block;margin-top:4px;">'+r.url+'</a>';
-h+='</div>';
-});
-h+='</div>';c.innerHTML=h;
+if(d.ok&&d.nftoken){
+c.innerHTML='<div style="background:#e8f5e9;padding:16px;border:2px solid #4ECDC4;border-radius:10px;"><h3>NFToken Generated!</h3><a href="'+d.url+'" target="_blank" style="color:#000;font-weight:700;word-break:break-all;display:block;margin-top:8px;">'+d.url+'</a></div>';
 }else{
-c.innerHTML='<div style="background:#FFB3B3;padding:16px;border:3px solid #000;border-radius:10px;"><h3>Gagal</h3><p>'+(d.message||d.error||'Unknown error')+'</p></div>';
+c.innerHTML='<div style="background:#ffebee;padding:16px;border:2px solid #FF6B6B;border-radius:10px;"><h3>Error</h3><p>'+(d.error||'Failed. Check cookies.')+'</p></div>';
 }
 })
 .catch(function(e){showError('nft-result',e.message);})
-.then(function(){btn.disabled=false;btn.textContent='Generate Token';});
+.finally(function(){btn.disabled=false;btn.textContent='Generate Token';});
 });
 });
 </script>
@@ -1856,9 +1879,11 @@ def api_alight_activate():
 @require_tool_key
 def api_nftoken_generate():
     data = request.get_json()
-    plan = data.get('plan', 'premium')
-    count = min(data.get('count', 1), 5)
-    return jsonify(nftoken.generate(plan, count))
+    cookie = data.get('cookie', '')
+    if not cookie:
+        return jsonify({"ok": False, "error": "Cookie required. Export Netflix cookies from browser."}), 400
+    result = nftoken.generate_token(cookie)
+    return jsonify(result)
 
 # ============================================
 # MAIN
