@@ -1223,7 +1223,7 @@ c.innerHTML='<div style="background:#FFB3B3;padding:16px;border:3px solid #000;b
 });
 });
 </script>
-</body></html>"""
+{script}</body></html>"""
 
 # ============================================
 # ROUTES
