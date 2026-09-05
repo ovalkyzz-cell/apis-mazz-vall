@@ -414,6 +414,12 @@ body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;margin:0
 .sidebar-overlay.active{display:block;}
 .sidebar-header{background:#FFD60A;padding:20px;border-bottom:4px solid #000;display:flex;align-items:center;justify-content:space-between;}
 .sidebar-header h2{font-size:16px;font-weight:800;margin:0;color:#000;}
+.brand-wrap{display:flex;align-items:center;gap:12px;}
+.brand-icon{font-size:32px;animation:pulse 2s ease-in-out infinite;}
+.brand-name{font-size:18px;font-weight:900;color:#000;letter-spacing:1px;animation:slideIn .6s ease-out;}
+.brand-sub{font-size:10px;color:#333;font-weight:600;letter-spacing:0.5px;animation:slideIn .8s ease-out;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
 .sidebar-close{background:none;border:none;font-size:24px;cursor:pointer;font-weight:800;color:#000;}
 .sidebar-nav{padding:12px 0;}
 .sidebar-nav a{display:flex;align-items:center;gap:12px;padding:14px 20px;color:#ccc;text-decoration:none;font-weight:600;font-size:14px;border-bottom:2px solid #2a2a3e;transition:all .2s;}
@@ -516,13 +522,21 @@ def SIDEBAR_HTML(active_page="", is_admin=False):
         <a href="/api-keys"><span class="icon">&#128273;</span> API Keys</a>
         <a href="/users"><span class="icon">&#9786;</span> Users</a>
         <a href="/settings"><span class="icon">&#9881;</span> Settings</a>
-        <a href="/user-monitor"><span class="icon">&#9881;</span> User Monitor</a>
+        <a href="/user-monitor"><span class="icon">&#128200;</span> User Monitor</a>
         """
     return f"""
     <div class="menu-toggle" id="menu-toggle">&#9776;</div>
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header"><h2>Rest Api Mazz Vall</h2></div>
+        <div class="sidebar-header">
+            <div class="brand-wrap">
+                <div class="brand-icon">&#9889;</div>
+                <div>
+                    <div class="brand-name">MazVall Api'S</div>
+                    <div class="brand-sub">Rest Api Mazz Vall</div>
+                </div>
+            </div>
+        </div>
         <div class="sidebar-nav">
             {admin_links}
             <div class="sidebar-section">Tools</div>
