@@ -91,5 +91,12 @@
       "created_at": "2026-09-04T16:25:07.758844",
       "expired_at": "2026-10-04T16:25:07.758865"
     }
-  ]
+  ],
+  "settings": {
+    "max_keys_per_day": 10,
+    "key_duration_days": 30,
+    "allow_registration": true,
+    "nft_max_per_request": 5,
+    "nft_daily_limit": 20
+  }
 }
