@@ -405,7 +405,7 @@ COPYRIGHT = "&copy; Created Rest Api Mazz Vall Hak cipta"
 
 BASE_STYLE = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;margin:0;}
 .sidebar{position:fixed;top:0;left:0;width:260px;height:100%;background:#1a1a2e;border-right:4px solid #000;z-index:200;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:0;}
@@ -413,13 +413,11 @@ body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;margin:0
 .sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:199;}
 .sidebar-overlay.active{display:block;}
 .sidebar-header{background:#FFD60A;padding:20px;border-bottom:4px solid #000;display:flex;align-items:center;justify-content:space-between;}
-.sidebar-header h2{font-size:16px;font-weight:800;margin:0;color:#000;}
 .brand-wrap{display:flex;align-items:center;gap:12px;}
-.brand-icon{font-size:32px;animation:pulse 2s ease-in-out infinite;}
-.brand-name{font-size:18px;font-weight:900;color:#000;letter-spacing:1px;animation:slideIn .6s ease-out;}
-.brand-sub{font-size:10px;color:#333;font-weight:600;letter-spacing:0.5px;animation:slideIn .8s ease-out;}
-@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
-@keyframes slideIn{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
+.brand-text{text-align:left;}
+.brand-name{font-size:20px;font-weight:900;color:#000;letter-spacing:0.5px;font-family:'Poppins',sans-serif;animation:fadeSlide .5s ease-out;}
+.brand-sub{font-size:10px;color:#333;font-weight:600;letter-spacing:1px;text-transform:uppercase;font-family:'Inter',sans-serif;animation:fadeSlide .7s ease-out;}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(-15px);}to{opacity:1;transform:translateX(0);}}
 .sidebar-close{background:none;border:none;font-size:24px;cursor:pointer;font-weight:800;color:#000;}
 .sidebar-nav{padding:12px 0;}
 .sidebar-nav a{display:flex;align-items:center;gap:12px;padding:14px 20px;color:#ccc;text-decoration:none;font-weight:600;font-size:14px;border-bottom:2px solid #2a2a3e;transition:all .2s;}
@@ -530,8 +528,7 @@ def SIDEBAR_HTML(active_page="", is_admin=False):
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="brand-wrap">
-                <div class="brand-icon">&#9889;</div>
-                <div>
+                <div class="brand-text">
                     <div class="brand-name">MazVall Api'S</div>
                     <div class="brand-sub">Rest Api Mazz Vall</div>
                 </div>
@@ -548,9 +545,9 @@ def SIDEBAR_HTML(active_page="", is_admin=False):
     </div>
     """
 
-LOGIN_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Login - Rest Api Mazz Vall</title>
+LOGIN_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Login - MazVall Api'S</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;}
 .login-container{width:100%;max-width:420px;}
@@ -570,7 +567,7 @@ body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;display:
 </style></head><body>
 <div class="login-container"><div class="login-box">
 <div class="icon">&#128274;</div>
-<h1>Rest Api Mazz Vall</h1>
+<h1 style="font-family:'Poppins',sans-serif;">MazVall Api'S</h1>
 <p class="subtitle">Masuk ke dashboard admin</p>
 {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
 <form method="POST" action="/login">
@@ -581,10 +578,11 @@ body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;display:
 <p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
 </div></div></body></html>"""
 
-DASHBOARD_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Dashboard - Rest Api Mazz Vall</title>{style}</head><body>
+DASHBOARD_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Dashboard - MazVall Api'S</title>{style}</head><body>
 {sidebar}
 <div class="main-content">
 <div class="container">
+<div style="text-align:center;padding:20px 0 0;"><h1 style="font-family:'Poppins',sans-serif;font-weight:900;font-size:32px;letter-spacing:1px;">MazVall Api'S</h1></div>
 <div class="page-title fade-in"><h1>Dashboard</h1><p>Selamat datang, {{ user }}!</p></div>
 <div class="stats">
 <div class="stat-card fade-in"><div class="number">{{ total_items }}</div><div class="label">Total Items</div></div>
@@ -609,10 +607,11 @@ DASHBOARD_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name=
 <p class="credit">&copy; Created Rest Api Mazz Vall Hak cipta</p>
 </div>{script}</body></html>"""
 
-ITEMS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Items - Rest Api Mazz Vall</title>{style}</head><body>
+ITEMS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Items - MazVall Api'S</title>{style}</head><body>
 {sidebar}
 <div class="main-content">
 <div class="container">
+<div style="text-align:center;padding:20px 0 0;"><h1 style="font-family:'Poppins',sans-serif;font-weight:900;font-size:32px;letter-spacing:1px;">MazVall Api'S</h1></div>
 <div class="page-title fade-in" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 <div><h1>Items</h1><p>Kelola data items Anda</p></div>
 <button class="btn btn-primary" id="btn-add-item">+ Tambah Item</button>
@@ -679,10 +678,11 @@ e.preventDefault();var id=document.getElementById('edit-id').value;var data={nam
 </script>
 {script}</body></html>"""
 
-API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Keys - Rest Api Mazz Vall</title>{style}</head><body>
+API_KEYS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Keys - MazVall Api'S</title>{style}</head><body>
 {sidebar}
 <div class="main-content">
 <div class="container">
+<div style="text-align:center;padding:20px 0 0;"><h1 style="font-family:'Poppins',sans-serif;font-weight:900;font-size:32px;letter-spacing:1px;">MazVall Api'S</h1></div>
 <div class="page-title fade-in" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 <div><h1>API Keys</h1><p>Kelola API keys untuk akses REST API</p></div>
 <button class="btn btn-primary" id="btn-open-modal">+ Generate Key</button>
@@ -763,10 +763,11 @@ btn.addEventListener('click',function(){if(confirm('Yakin hapus API key ini?')){
 </script>
 {script}</body></html>"""
 
-API_DOCS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Docs - Rest Api Mazz Vall</title>{style}</head><body>
+API_DOCS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>API Docs - MazVall Api'S</title>{style}</head><body>
 {sidebar}
 <div class="main-content">
 <div class="container">
+<div style="text-align:center;padding:20px 0 0;"><h1 style="font-family:'Poppins',sans-serif;font-weight:900;font-size:32px;letter-spacing:1px;">MazVall Api'S</h1></div>
 <div class="page-title fade-in"><h1>API Documentation</h1><p>Cara menggunakan REST API dengan API key</p></div>
 <div class="card fade-in"><h2>Autentikasi</h2><p style="color:#666;font-size:14px;margin-bottom:12px;">Semua request harus menyertakan API key di header:</p><pre>X-API-Key: MZval -Xxxxxxxxxxx</pre><p style="color:#666;font-size:13px;margin-top:10px;">API key terkunci ke 1 device.</p></div>
 <div class="card fade-in"><h2>Base URL</h2><pre>https://valky-official.zone.id/api</pre><p style="color:#666;font-size:12px;margin-top:8px;">Gunakan TOOL-xxx key atau MZval -Xxxx key</p></div>
@@ -825,10 +826,11 @@ document.getElementById('btn-test-dm').addEventListener('click',function(){testA
 </script>
 {script}</body></html>"""
 
-USERS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Users - Rest Api Mazz Vall</title>{style}</head><body>
+USERS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Users - MazVall Api'S</title>{style}</head><body>
 {sidebar}
 <div class="main-content">
 <div class="container">
+<div style="text-align:center;padding:20px 0 0;"><h1 style="font-family:'Poppins',sans-serif;font-weight:900;font-size:32px;letter-spacing:1px;">MazVall Api'S</h1></div>
 <div class="page-title fade-in" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 <div><h1>User Management</h1><p>Kelola user dengan role: Harian, Mingguan, Bulanan, Permanen</p></div>
 <button class="btn btn-primary" id="btn-create-user">+ Create User</button>
@@ -901,10 +903,11 @@ btn.addEventListener('click',function(){if(confirm('Yakin hapus user ini?')){fet
 </script>
 {script}</body></html>"""
 
-TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Tools - Rest Api Mazz Vall</title>{style}</head><body>
+TOOLS_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Tools - MazVall Api'S</title>{style}</head><body>
 {sidebar}
 <div class="main-content">
 <div class="container">
+<div style="text-align:center;padding:20px 0 0;"><h1 style="font-family:'Poppins',sans-serif;font-weight:900;font-size:32px;letter-spacing:1px;">MazVall Api'S</h1></div>
 <div class="marquee"><marquee behavior="scroll" direction="left" scrollamount="5">&#9889; Welcome to Rest Api Mazz Vall - Alight Motion Premium - Dailymotion - Bittv - MovieBox - TikTok - Translator - Screenshot - Gempa - Netflix Token</marquee></div>
 <div style="background:#f0f0f0;padding:10px;border-radius:8px;border:2px solid #000;margin-bottom:16px;text-align:center;font-family:monospace;font-size:13px;"><strong>Base API:</strong> <a href="https://valky-official.zone.id/api" target="_blank" style="color:#000;text-decoration:underline;">https://valky-official.zone.id/api</a></div>
 <div class="page-title visible"><h1>Tools Center</h1><p>Semua tools wajib API Key</p></div>
